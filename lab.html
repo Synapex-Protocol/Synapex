@@ -48,44 +48,55 @@
 </div>
 
 <!-- LAB INFRASTRUCTURE -->
-<section class="section">
+<section class="section" id="labInfra">
   <div class="section-header reveal">
-    <div class="section-label">Platform Infrastructure</div>
+    <div class="section-label">Laboratorium</div>
     <h2 class="section-title">Everything You Need to <span class="accent">Research</span></h2>
-    <p class="section-desc">From raw GPU compute to pre-trained model repositories — a complete stack for independent AI research.</p>
+    <p class="section-desc">From raw GPU compute to pre-trained model repositories — a complete stack for independent AI research. Select a tool to launch its program.</p>
   </div>
 
-  <div class="grid-3 stagger">
-    <div class="card reveal">
+  <div class="tools-grid stagger">
+    <div class="card card-clickable reveal" data-tool="compute">
       <div class="card-icon blue">&#128421;</div>
       <div class="card-title">Compute Marketplace</div>
-      <div class="card-text">Distributed GPU network accessible via $SYNX token. Pay-as-you-go training runs, inference endpoints, simulation environments. Real infrastructure, auditable on-chain.</div>
+      <div class="card-text">Distributed GPU network accessible via $SYNX token. Pay-as-you-go training runs, inference endpoints, simulation environments.</div>
     </div>
-    <div class="card reveal">
+    <div class="card card-clickable reveal" data-tool="models">
       <div class="card-icon teal">&#128300;</div>
       <div class="card-title">Model Repository</div>
-      <div class="card-text">Access SYNAPEX-trained models: vision systems, motor controllers, perception modules. Fine-tune on your data. Build on protocol research without starting from scratch.</div>
+      <div class="card-text">Access SYNAPEX-trained models: vision systems, motor controllers, perception modules. Fine-tune on your data.</div>
     </div>
-    <div class="card reveal">
+    <div class="card card-clickable reveal" data-tool="simulation">
       <div class="card-icon purple">&#128202;</div>
       <div class="card-title">Simulation Suite</div>
-      <div class="card-text">Physics-accurate environments for training embodied AI. Pre-built scenarios for locomotion, manipulation, navigation. Sim-to-real transfer tools included.</div>
+      <div class="card-text">Physics-accurate environments for training embodied AI. Pre-built scenarios for locomotion, manipulation, navigation.</div>
     </div>
-    <div class="card reveal">
+    <div class="card card-clickable reveal" data-tool="collab">
       <div class="card-icon gold">&#127758;</div>
       <div class="card-title">Collaboration Network</div>
-      <div class="card-text">Connect with inventors, developers, researchers globally. Share datasets, co-author experiments, form research teams. A living community, not a static tool.</div>
+      <div class="card-text">Connect with inventors, developers, researchers globally. Share datasets, co-author experiments, form research teams.</div>
     </div>
-    <div class="card reveal">
+    <div class="card card-clickable reveal" data-tool="dao">
       <div class="card-icon blue">&#128499;</div>
       <div class="card-title">Research DAO</div>
-      <div class="card-text">Token holders vote on research priorities, compute allocation, and platform evolution. The community decides what SYNAPEX builds next.</div>
+      <div class="card-text">Token holders vote on research priorities, compute allocation, and platform evolution.</div>
     </div>
-    <div class="card reveal">
+    <div class="card card-clickable reveal" data-tool="ip">
       <div class="card-icon red">&#128737;</div>
       <div class="card-title">IP Protection</div>
-      <div class="card-text">On-chain IP registration for every research output. Inventors retain ownership. Smart contract licensing enables monetisation without surrendering IP.</div>
+      <div class="card-text">On-chain IP registration for every research output. Inventors retain ownership. Smart contract licensing.</div>
     </div>
+  </div>
+
+  <div class="tool-workspace" id="toolWorkspace">
+    <div class="tool-header">
+      <div class="tool-header-left">
+        <span class="tool-header-icon" id="toolIcon"></span>
+        <span class="tool-header-title" id="toolTitle"></span>
+      </div>
+      <button class="tool-close-btn" id="toolCloseBtn">&#10005; Close</button>
+    </div>
+    <div class="tool-body" id="toolBody"></div>
   </div>
 </section>
 
@@ -202,61 +213,6 @@
     <span class="callout-label">Community Modules</span>
     <p>Any researcher can publish their own modules to the library. Modules are reviewed by the community,
     and creators earn $SYNX rewards based on usage. Build once, get paid every time someone uses your work.</p>
-  </div>
-</section>
-
-<!-- LAB TOOLS -->
-<section class="section" id="labTools" style="border-top:1px solid var(--border);background:linear-gradient(180deg,transparent,rgba(0,212,168,0.01),transparent);">
-  <div class="section-header center reveal">
-    <div class="section-label">Laboratorium</div>
-    <h2 class="section-title">SYNAPEX <span class="accent2">Tools</span></h2>
-    <p class="section-desc">
-      Interactive research utilities built by the SYNAPEX team. Select a tool to launch it directly in your browser.
-    </p>
-  </div>
-
-  <div class="tools-grid stagger">
-    <div class="tool-card reveal" data-tool="palette">
-      <span class="tool-card-icon">&#127912;</span>
-      <div class="tool-card-name">Color Palette</div>
-      <div class="tool-card-desc">Generate & export palettes</div>
-    </div>
-    <div class="tool-card reveal" data-tool="json">
-      <span class="tool-card-icon">&#128196;</span>
-      <div class="tool-card-name">JSON Formatter</div>
-      <div class="tool-card-desc">Format & validate JSON</div>
-    </div>
-    <div class="tool-card reveal" data-tool="base64">
-      <span class="tool-card-icon">&#128274;</span>
-      <div class="tool-card-name">Base64</div>
-      <div class="tool-card-desc">Encode & decode text</div>
-    </div>
-    <div class="tool-card reveal" data-tool="textanalyzer">
-      <span class="tool-card-icon">&#128209;</span>
-      <div class="tool-card-name">Text Analyzer</div>
-      <div class="tool-card-desc">Words, chars & stats</div>
-    </div>
-    <div class="tool-card reveal" data-tool="timer">
-      <span class="tool-card-icon">&#9201;</span>
-      <div class="tool-card-name">Stopwatch</div>
-      <div class="tool-card-desc">Precision timer</div>
-    </div>
-    <div class="tool-card reveal" data-tool="password">
-      <span class="tool-card-icon">&#128272;</span>
-      <div class="tool-card-name">Password Gen</div>
-      <div class="tool-card-desc">Secure password creator</div>
-    </div>
-  </div>
-
-  <div class="tool-workspace" id="toolWorkspace">
-    <div class="tool-header">
-      <div class="tool-header-left">
-        <span class="tool-header-icon" id="toolIcon"></span>
-        <span class="tool-header-title" id="toolTitle"></span>
-      </div>
-      <button class="tool-close-btn" id="toolCloseBtn">&#10005; Close</button>
-    </div>
-    <div class="tool-body" id="toolBody"></div>
   </div>
 </section>
 
