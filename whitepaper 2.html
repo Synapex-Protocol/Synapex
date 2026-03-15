@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNAPEX PROTOCOL — Whitepaper v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #04060f;
+  --surface: #080d1c;
+  --surface2: #0c1226;
+  --border: rgba(80,140,255,0.1);
+  --border2: rgba(80,140,255,0.2);
+  --accent: #4a8cff;
+  --accent2: #00d4a8;
+  --accent3: #ff5577;
+  --gold: #e8c87a;
+  --text: #dce8ff;
+  --body: #9aaec8;
+  --muted: #4a5c7a;
+  --grid: rgba(74,140,255,0.03);
+  --sidebar: 260px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Crimson Pro', serif;
+  font-size: 17px;
+  line-height: 1.8;
+  overflow-x: hidden;
+}
+
+/* BACKGROUND */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(74,140,255,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* LAYOUT */
+.layout {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+  /* no z-index — prevents stacking context trapping sidebar below overlay */
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: #080d1c;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 32px 0 40px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo {
+  padding: 0 24px 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.sidebar-logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.sidebar-doc {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.nav-section {
+  padding: 0 16px;
+  margin-bottom: 8px;
+}
+
+.nav-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 8px;
+  margin-bottom: 4px;
+  margin-top: 16px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  transition: all 0.2s;
+  line-height: 1.3;
+}
+
+.nav-link:hover {
+  color: var(--text);
+  background: rgba(74,140,255,0.08);
+}
+
+.nav-link.active {
+  color: var(--accent);
+  background: rgba(74,140,255,0.1);
+}
+
+.nav-num {
+  font-size: 9px;
+  color: var(--muted);
+  min-width: 18px;
+  opacity: 0.6;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 20px 24px 0;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-version {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+/* MAIN CONTENT */
+.main {
+  margin-left: var(--sidebar);
+  flex: 1;
+  padding: 0 80px 100px 80px;
+  max-width: calc(var(--sidebar) + 820px);
+}
+
+/* COVER PAGE */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 0 60px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 80px;
+  position: relative;
+}
+
+.cover-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 32px;
+  animation: fadeUp 0.8s ease both;
+}
+
+.cover-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  margin-bottom: 24px;
+  animation: fadeUp 0.8s 0.1s ease both;
+}
+
+.cover-title .line1 { display: block; color: #fff; }
+.cover-title .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cover-subtitle {
+  font-size: 20px;
+  color: var(--body);
+  max-width: 580px;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 48px;
+  animation: fadeUp 0.8s 0.2s ease both;
+}
+
+.cover-meta {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  animation: fadeUp 0.8s 0.3s ease both;
+}
+
+.cover-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cover-meta-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cover-meta-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.cover-deco {
+  position: absolute;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  animation: rotate 30s linear infinite;
+  pointer-events: none;
+}
+
+.cover-deco::before {
+  content: '';
+  position: absolute;
+  inset: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(74,140,255,0.08);
+}
+
+.cover-deco::after {
+  content: '';
+  position: absolute;
+  inset: 60px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,212,168,0.08);
+}
+
+/* SECTIONS */
+.section {
+  margin-bottom: 80px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.section-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-id::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 28px;
+  letter-spacing: -0.3px;
+}
+
+.section-title .accent { color: var(--accent); }
+.section-title .accent2 { color: var(--accent2); }
+
+.lead {
+  font-size: 20px;
+  color: var(--body);
+  line-height: 1.75;
+  margin-bottom: 32px;
+  font-style: italic;
+  border-left: 3px solid var(--accent);
+  padding-left: 20px;
+}
+
+p {
+  color: var(--body);
+  margin-bottom: 20px;
+  font-size: 17px;
+  line-height: 1.85;
+}
+
+h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 36px 0 12px;
+  letter-spacing: -0.2px;
+}
+
+h4 {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 28px 0 10px;
+}
+
+/* CALLOUT */
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 20px 24px;
+  margin: 28px 0;
+}
+
+.callout-teal { border-left-color: var(--accent2); }
+.callout-red { border-left-color: var(--accent3); }
+.callout-gold { border-left-color: var(--gold); }
+
+.callout p { margin: 0; font-size: 16px; color: var(--text); }
+.callout strong { color: var(--accent); font-style: normal; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 1px; display: block; margin-bottom: 8px; text-transform: uppercase; }
+
+/* CARDS GRID */
+.cards-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 28px 0;
+}
+
+.cards-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin: 28px 0;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.2s;
+}
+
+.card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  font-size: 24px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.card-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* ARCHITECTURE DIAGRAM */
+.arch-diagram {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 32px;
+  margin: 28px 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  overflow-x: auto;
+}
+
+.arch-diagram pre {
+  color: var(--body);
+  line-height: 2;
+  white-space: pre;
+}
+
+.arch-diagram .hl { color: var(--accent); }
+.arch-diagram .hl2 { color: var(--accent2); }
+.arch-diagram .hl3 { color: var(--accent3); }
+.arch-diagram .hg { color: var(--gold); }
+
+/* TOKEN TABLE */
+.token-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 28px 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+}
+
+.token-table th {
+  background: var(--surface2);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.token-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--body);
+  vertical-align: top;
+}
+
+.token-table tr:hover td { background: rgba(74,140,255,0.03); }
+
+.token-table td:first-child { color: var(--text); font-weight: 500; }
+.token-table .pct { color: var(--accent); font-weight: 500; }
+
+/* PROGRESS BARS */
+.alloc-row {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alloc-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--body);
+  min-width: 180px;
+}
+
+.alloc-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.alloc-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+
+.alloc-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ROADMAP */
+.roadmap {
+  position: relative;
+  padding-left: 28px;
+  margin: 28px 0;
+}
+
+.roadmap::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--muted));
+}
+
+.roadmap-item {
+  position: relative;
+  margin-bottom: 36px;
+}
+
+.roadmap-item::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+
+.roadmap-item:nth-child(2)::before { background: var(--accent2); }
+.roadmap-item:nth-child(3)::before { background: var(--gold); }
+.roadmap-item:nth-child(4)::before { background: var(--accent3); }
+.roadmap-item:nth-child(5)::before { background: #c084fc; }
+
+.roadmap-phase {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.roadmap-item:nth-child(2) .roadmap-phase { color: var(--accent2); }
+.roadmap-item:nth-child(3) .roadmap-phase { color: var(--gold); }
+.roadmap-item:nth-child(4) .roadmap-phase { color: var(--accent3); }
+.roadmap-item:nth-child(5) .roadmap-phase { color: #c084fc; }
+
+.roadmap-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.roadmap-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.roadmap-tag {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--body);
+}
+
+/* STATS ROW */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 28px 0;
+}
+
+.stat-item {
+  background: var(--surface);
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* TEAM */
+.team-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin: 20px 0;
+}
+
+.team-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.team-body { flex: 1; }
+
+.team-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.team-role {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.skill-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+
+.skill-tag {
+  background: rgba(74,140,255,0.08);
+  border: 1px solid rgba(74,140,255,0.2);
+  color: var(--accent);
+  padding: 3px 9px;
+  border-radius: 3px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+}
+
+.team-bio {
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* DISCLAIMER */
+.disclaimer {
+  background: rgba(255,85,119,0.05);
+  border: 1px solid rgba(255,85,119,0.15);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 32px 0;
+}
+
+.disclaimer-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent3);
+  margin-bottom: 12px;
+}
+
+.disclaimer p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.disclaimer p:last-child { margin: 0; }
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 48px 0;
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rotate {
+  from { transform: translateY(-50%) rotate(0deg); }
+  to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* BRAIN DIAGRAM */
+.brain-diagram {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 28px 0;
+}
+.brain-diagram-inner {
+  padding: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.brain-diagram-inner svg { min-width: 480px; }
+.brain-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+}
+.brain-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+.brain-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* MOBILE TOGGLE BUTTON */
+.mobile-nav-toggle {
+  display: none;
+  position: fixed;
+  top: 16px; left: 16px;
+  z-index: 200;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  width: 44px; height: 44px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px;
+  transition: background 0.2s;
+}
+.mobile-nav-toggle:hover { background: rgba(74,140,255,0.1); }
+.mobile-nav-toggle span {
+  display: block; width: 20px; height: 2px;
+  background: var(--accent); border-radius: 1px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+.mobile-nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.mobile-nav-toggle.open span:nth-child(2) { opacity: 0; }
+.mobile-nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* OVERLAY */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(4,6,15,0.82);
+  z-index: 99; /* below sidebar (150) but above main content */
+}
+.sidebar-overlay.visible { display: block; }
+
+/* TOKEN TABLE WRAPPER */
+.token-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 28px 0;
+}
+.token-table-wrap .token-table { margin: 0; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ═══ TABLET ≤1024px ═══ */
+@media (max-width: 1024px) {
+  :root { --sidebar: 220px; }
+  .main { padding: 60px 40px 80px; }
+  .cover-title { font-size: clamp(32px, 5vw, 56px); }
+  .cards-3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ═══ MOBILE ≤768px ═══ */
+@media (max-width: 768px) {
+  :root { --sidebar: 260px; }
+  .mobile-nav-toggle { display: flex; }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 40px rgba(4,6,15,0.8);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 72px 20px 80px; max-width: 100%; }
+  .cover { padding: 32px 0 40px; min-height: auto; }
+  .cover-deco { display: none; }
+  .cover-title { font-size: clamp(26px, 8vw, 44px); }
+  .cover-subtitle { font-size: 16px; }
+  .cover-meta { gap: 16px; flex-wrap: wrap; }
+  .section-title { font-size: 24px; }
+  .lead { font-size: 16px; padding-left: 14px; }
+  p { font-size: 15px; }
+  .cards-2, .cards-3 { grid-template-columns: 1fr; gap: 12px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .stat-value { font-size: 22px; }
+  .team-card { flex-direction: column; gap: 16px; }
+  .section { margin-bottom: 56px; }
+  .token-table th, .token-table td { padding: 10px 12px; white-space: nowrap; }
+  .alloc-label { min-width: 130px; font-size: 10px; }
+  .roadmap { padding-left: 20px; }
+  h3 { font-size: 16px; }
+}
+
+/* ═══ SMALL MOBILE ≤400px ═══ */
+@media (max-width: 400px) {
+  .main { padding: 68px 14px 60px; }
+  .cover-title { font-size: 24px; }
+  .stats-row { grid-template-columns: 1fr; }
+  .cover-meta { flex-direction: column; gap: 12px; }
+  .brain-diagram-inner svg { min-width: 380px; }
+  .alloc-label { min-width: 100px; }
+  .skill-tags { gap: 4px; }
+  .skill-tag { font-size: 9px; padding: 2px 6px; }
+}
+</style>
+</head>
+<body>
+<!-- MOBILE NAV TOGGLE -->
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Open navigation">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="layout">
+
+<!-- SIDEBAR NAV -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="sidebar-logo-text">SYNAPEX</span>
+    <span class="sidebar-doc">Whitepaper v1.0</span>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-section-label">Introduction</div>
+    <a href="#abstract" class="nav-link"><span class="nav-num">00</span> Abstract</a>
+    <a href="#problem" class="nav-link"><span class="nav-num">01</span> The Problem</a>
+    <a href="#vision" class="nav-link"><span class="nav-num">02</span> Vision</a>
+
+    <div class="nav-section-label">Technology</div>
+    <a href="#body" class="nav-link"><span class="nav-num">03</span> Embodied Intelligence</a>
+    <a href="#brain" class="nav-link"><span class="nav-num">04</span> Autonomous AI Brain</a>
+    <a href="#lab" class="nav-link"><span class="nav-num">05</span> Virtual Research Lab</a>
+
+    <div class="nav-section-label">Economy</div>
+    <a href="#token" class="nav-link"><span class="nav-num">06</span> $SYNX Token</a>
+    <a href="#tokenomics" class="nav-link"><span class="nav-num">07</span> Tokenomics</a>
+    <a href="#dao" class="nav-link"><span class="nav-num">08</span> DAO Governance</a>
+
+    <div class="nav-section-label">Project</div>
+    <a href="#roadmap" class="nav-link"><span class="nav-num">09</span> Roadmap · 5 Phases</a>
+    <a href="#team" class="nav-link"><span class="nav-num">10</span> Team</a>
+    <a href="#legal" class="nav-link"><span class="nav-num">11</span> Legal</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-version">v1.0 · 2026 · CONFIDENTIAL</div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- COVER -->
+  <section class="cover" id="cover">
+    <div class="cover-label">Whitepaper · Version 1.0 · 2026</div>
+    <h1 class="cover-title">
+      <span class="line1">SYNAPEX</span>
+      <span class="line2">PROTOCOL</span>
+    </h1>
+    <p class="cover-subtitle">
+      A decentralized compute economy funding the development of autonomous embodied intelligence —
+      where biology, artificial neural networks and blockchain converge.
+    </p>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Token</span>
+        <span class="cover-meta-value">$SYNX</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Network</span>
+        <span class="cover-meta-value">EVM Compatible</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Category</span>
+        <span class="cover-meta-value">AI · Robotics · DeFi</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Status</span>
+        <span class="cover-meta-value">Seed Stage</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Document</span>
+        <span class="cover-meta-value">Confidential Draft</span>
+      </div>
+    </div>
+    <div class="cover-deco"></div>
+  </section>
+
+  <!-- 00 ABSTRACT -->
+  <section class="section" id="abstract">
+    <div class="section-id">00 · Abstract</div>
+    <h2 class="section-title">Executive <span class="accent">Summary</span></h2>
+    <div class="lead">
+      SYNAPEX PROTOCOL is a decentralized infrastructure layer that finances, develops,
+      and distributes breakthrough technologies in autonomous embodied artificial intelligence.
+    </div>
+    <p>
+      We are building what we believe to be the first community-funded autonomous humanoid system —
+      an integrated platform where a proprietary physical actuation technology meets a novel multi-agent
+      AI architecture capable of autonomous reasoning, perception, and decision-making without
+      centralized control.
+    </p>
+    <p>
+      The protocol is funded through the issuance of <strong>$SYNX</strong> — a utility token
+      whose value is directly anchored to real computational infrastructure. Token holders gain access
+      to AI models, GPU compute, a collaborative research laboratory, and governance rights over the
+      direction of the protocol.
+    </p>
+    <p>
+      SYNAPEX is not a product company. It is a <em>protocol</em> — an open, programmable layer
+      on which developers, researchers, and inventors worldwide can build, collaborate, and
+      benefit from advances in embodied AI that would otherwise remain locked behind
+      institutional barriers.
+    </p>
+
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-value">2</div>
+        <div class="stat-label">Core<br/>Technologies</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">$SYNX</div>
+        <div class="stat-label">Native<br/>Token</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">DAO</div>
+        <div class="stat-label">Governance<br/>Model</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">∞</div>
+        <div class="stat-label">Open Research<br/>Access</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 PROBLEM -->
+  <section class="section" id="problem">
+    <div class="section-id">01 · The Problem</div>
+    <h2 class="section-title">Why <span class="accent">Now</span> Matters</h2>
+    <div class="lead">
+      The robotics and AI industries are converging on a critical inflection point —
+      yet the most fundamental questions remain unsolved, and the funding to solve them remains inaccessible.
+    </div>
+
+    <h3>The Hardware Gap</h3>
+    <p>
+      Current humanoid robots — regardless of their sophistication — are built on architectures that are
+      fundamentally mechanical in nature. Rigid actuators, fixed servo motors, and pre-programmed joint
+      sequences produce motion that is recognizably artificial. The gap between biological movement and
+      robotic motion is not merely aesthetic; it represents a fundamental limitation in adaptability,
+      energy efficiency, and the ability to interact naturally with an unstructured world.
+    </p>
+    <p>
+      Biology solved this problem billions of years ago with soft, hierarchically organized contractile tissue.
+      Modern robotics has largely ignored this solution in favour of engineering convenience. The result is
+      machines that can perform in controlled environments but fail in the complexity of natural ones.
+    </p>
+
+    <h3>The AI Architecture Gap</h3>
+    <p>
+      Contemporary AI systems — even the most advanced large language and vision models — are fundamentally
+      monolithic. A single model is responsible for perception, reasoning, planning, and action. This
+      creates a brittle architecture: one point of failure, one locus of control, and a fundamental
+      misalignment with how biological intelligence actually works.
+    </p>
+    <p>
+      Biological minds are not single models. They are ecosystems of competing and cooperating processes —
+      each specialised, each capable of overriding others under the right conditions. The result is
+      resilient, adaptive, genuinely autonomous behaviour that no current AI architecture replicates.
+    </p>
+
+    <h3>The Funding Gap</h3>
+    <p>
+      Breakthrough research at the intersection of hardware and AI requires capital that is out of reach
+      for independent innovators. Venture capital flows toward near-term commercial applications.
+      Academic grants move slowly and demand institutional affiliation. The result is that genuinely
+      radical ideas — the ones most likely to produce paradigm shifts — are systematically underfunded
+      or abandoned entirely.
+    </p>
+
+    <div class="callout">
+      <strong>Core Insight</strong>
+      <p>The three gaps — in hardware, in AI architecture, and in funding — are not independent problems.
+      They are the same problem viewed from different angles. SYNAPEX Protocol addresses all three simultaneously.</p>
+    </div>
+  </section>
+
+  <!-- 02 VISION -->
+  <section class="section" id="vision">
+    <div class="section-id">02 · Vision</div>
+    <h2 class="section-title">The <span class="accent2">SYNAPEX</span> Thesis</h2>
+    <div class="lead">
+      Intelligence without a body is computation. Intelligence with a body is existence.
+      We are building the bridge between the two.
+    </div>
+    <p>
+      The SYNAPEX thesis rests on a single conviction: that genuinely autonomous intelligence —
+      intelligence that can exist, navigate, and act in the natural world — requires the co-design
+      of body and mind from first principles. You cannot build an intelligent body by bolting an AI
+      onto a mechanical chassis. You cannot train an embodied AI on disembodied data.
+      The physical and the cognitive must be designed as one.
+    </p>
+    <p>
+      We are building that system. And we are funding its development through a decentralized protocol
+      that allows anyone in the world — regardless of institutional affiliation or capital resources —
+      to participate in, contribute to, and benefit from this work.
+    </p>
+
+    <div class="cards-3">
+      <div class="card">
+        <span class="card-icon">🦾</span>
+        <div class="card-title">Biology-First Hardware</div>
+        <div class="card-text">Actuation systems inspired by the hierarchical structure of biological muscle. Natural compliance, scalable force, RL-compatible control interface.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🧠</span>
+        <div class="card-title">Decentralized Intelligence</div>
+        <div class="card-text">Multi-agent AI brain where no single model holds control. Decisions emerge from the interaction of specialised, interdependent modules.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🌐</span>
+        <div class="card-title">Open Research Economy</div>
+        <div class="card-text">A global laboratory where independent innovators access compute, models and collaboration — funded and governed by the community that builds it.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 BODY -->
+  <section class="section" id="body">
+    <div class="section-id">03 · Technology I</div>
+    <h2 class="section-title">Embodied Intelligence: <span class="accent">The Body</span></h2>
+    <div class="lead">
+      The physical foundation of SYNAPEX is a proprietary actuation technology that replicates
+      the hierarchical organisation of biological muscle at the engineering level.
+    </div>
+
+    <h3>Design Philosophy</h3>
+    <p>
+      Biological skeletal muscle achieves its remarkable properties — compliance, scalability, precise
+      force gradation, energy efficiency — through a hierarchical structure: individual contractile units
+      organised into fibers, fibers organised into bundles, bundles forming the complete muscle.
+      Control is distributed: the nervous system activates subsets of this hierarchy, producing
+      behaviour that emerges from the collective rather than being explicitly programmed.
+    </p>
+    <p>
+      SYNAPEX replicates this philosophy in engineered form. Our proprietary fiber architecture
+      organises individual electromagnetic actuation units into a hierarchical bundle structure
+      that mirrors the topology of biological muscle. The result is an actuation system with properties
+      that discrete motor systems fundamentally cannot achieve.
+    </p>
+
+    <div class="callout callout-teal">
+      <strong>Proprietary Technology</strong>
+      <p>The specific mechanism, materials, and electromagnetic architecture of the SYNAPEX actuation system
+      constitute proprietary intellectual property and are protected accordingly.
+      Full technical specifications are available to qualified partners under NDA.</p>
+    </div>
+
+    <h3>Key System Properties</h3>
+    <div class="cards-2">
+      <div class="card">
+        <div class="card-title">⚡ Hierarchical Force Scaling</div>
+        <div class="card-text">Force output scales linearly with the number of active fiber bundles — identical in principle to the motor unit recruitment strategy of biological muscle. No architectural redesign required at different force levels.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎛️ Continuous Force Gradation</div>
+        <div class="card-text">Partial activation of fiber bundles provides smooth, continuous force modulation — essential for natural interaction with unstructured environments and for stable RL-based motor learning.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📡 Proprioceptive Feedback</div>
+        <div class="card-text">Integrated sensing at the fiber and bundle level provides rich proprioceptive data — the body continuously reports its own state to the AI control system, enabling closed-loop learning without external motion capture.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🤖 RL-Native Interface</div>
+        <div class="card-text">The actuation and sensing interface is designed from the ground up for reinforcement learning control. The system presents the same input-output structure to the neural network as biological muscle presents to the nervous system.</div>
+      </div>
+    </div>
+
+    <h3>Reinforcement Learning Integration</h3>
+    <p>
+      The critical design decision in the SYNAPEX body system is the explicit choice to make the
+      hardware RL-native. Conventional robotic actuators are designed for inverse kinematics pipelines —
+      they expect a commanded joint angle and execute it. SYNAPEX actuators instead present a
+      biologically-analogous interface: a set of activation signals whose physical consequences must
+      be learned, not programmed.
+    </p>
+    <p>
+      This design choice has profound implications for the intelligence that emerges from the system.
+      A neural network trained to control SYNAPEX hardware develops motor representations that are
+      structurally similar to those in biological motor cortex — distributed, hierarchical, and
+      genuinely adaptive rather than lookup-table-based.
+    </p>
+
+    <div class="brain-diagram">
+      <div class="brain-diagram-inner">
+        <svg id="body-svg" viewBox="0 0 860 580" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:860px;height:auto;">
+  <defs>
+    <filter id="bs-glow-blue">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="bs-glow-teal">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="bs-shadow-blue">
+      <feDropShadow dx="0" dy="4" stdDeviation="14" flood-color="#4a8cff" flood-opacity="0.28"/>
+    </filter>
+    <filter id="bs-shadow-teal">
+      <feDropShadow dx="0" dy="4" stdDeviation="14" flood-color="#00d4a8" flood-opacity="0.28"/>
+    </filter>
+    <filter id="bs-shadow-purple">
+      <feDropShadow dx="0" dy="4" stdDeviation="14" flood-color="#c084fc" flood-opacity="0.28"/>
+    </filter>
+    <filter id="bs-shadow-gold">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#e8c87a" flood-opacity="0.22"/>
+    </filter>
+
+    <!-- Gradients -->
+    <linearGradient id="bs-grad-bundle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f1f3a"/>
+      <stop offset="100%" stop-color="#071428"/>
+    </linearGradient>
+    <linearGradient id="bs-grad-fiber" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a8cff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#4a8cff" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="bs-grad-proprio" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a2a1e"/>
+      <stop offset="100%" stop-color="#051510"/>
+    </linearGradient>
+    <linearGradient id="bs-grad-ai" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0a28"/>
+      <stop offset="100%" stop-color="#0d0518"/>
+    </linearGradient>
+    <linearGradient id="bs-grad-activation" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4a8cff" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#4a8cff" stop-opacity="0.8"/>
+      <stop offset="70%" stop-color="#4a8cff" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#4a8cff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bs-fiber-glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a8cff"/>
+      <stop offset="100%" stop-color="#00d4a8"/>
+    </linearGradient>
+
+    <!-- Arrows -->
+    <marker id="bs-arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4a8cff" opacity="0.9"/>
+    </marker>
+    <marker id="bs-arrow-teal" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00d4a8" opacity="0.9"/>
+    </marker>
+    <marker id="bs-arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#c084fc" opacity="0.9"/>
+    </marker>
+  </defs>
+
+  <!-- Grid background -->
+  <pattern id="bs-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M40 0L0 0 0 40" fill="none" stroke="#4a8cff" stroke-width="0.3" opacity="0.07"/>
+  </pattern>
+  <rect width="860" height="580" fill="url(#bs-grid)"/>
+
+  <!-- Ambient glow center -->
+  <ellipse cx="430" cy="290" rx="300" ry="200" fill="rgba(74,140,255,0.015)"/>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- TITLE -->
+  <!-- ══════════════════════════════════════════════ -->
+  <text x="430" y="28" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" text-anchor="middle" letter-spacing="4" opacity="0.8">SYNAPEX PROTOCOL</text>
+  <text x="430" y="50" font-family="Syne,sans-serif" font-size="18" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">BODY SYSTEM — Conceptual Architecture</text>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- LAYER 1: FIBER BUNDLE ARRAY (top box) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <g filter="url(#bs-shadow-blue)">
+    <!-- Main container -->
+    <rect x="60" y="68" width="740" height="200" rx="14" fill="url(#bs-grad-bundle)" stroke="#4a8cff" stroke-width="1.2" stroke-opacity="0.5"/>
+    <!-- Top accent bar -->
+    <rect x="60" y="68" width="740" height="2.5" rx="1" fill="#4a8cff" opacity="0.7"/>
+    <!-- Inner subtle border -->
+    <rect x="66" y="74" width="728" height="188" rx="10" fill="none" stroke="#4a8cff" stroke-width="0.5" stroke-opacity="0.15" stroke-dasharray="4 3"/>
+  </g>
+
+  <!-- Layer label -->
+  <text x="84" y="92" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" letter-spacing="2.5" opacity="0.9">FIBER BUNDLE ARRAY</text>
+
+  <!-- ── 5 Bundle columns ── -->
+  <!-- Bundle 1 -->
+  <g transform="translate(110, 105)">
+    <rect width="96" height="120" rx="8" fill="url(#bs-grad-fiber)" stroke="#4a8cff" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="48" y="16" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" text-anchor="middle" letter-spacing="1" opacity="0.8">Bundle₁</text>
+    <!-- 3 fiber cells -->
+    <rect x="8" y="24" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="38" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">F₁.₁</text>
+    <rect x="8" y="52" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="66" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">F₁.₂</text>
+    <rect x="8" y="80" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="94" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">F₁.₃</text>
+    <!-- activation dot -->
+    <circle cx="48" cy="118" r="4" fill="#4a8cff" opacity="0.9">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Bundle 2 -->
+  <g transform="translate(230, 105)">
+    <rect width="96" height="120" rx="8" fill="url(#bs-grad-fiber)" stroke="#4a8cff" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="48" y="16" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" text-anchor="middle" letter-spacing="1" opacity="0.8">Bundle₂</text>
+    <rect x="8" y="24" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="38" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">F₂.₁</text>
+    <rect x="8" y="52" width="80" height="22" rx="4" fill="rgba(74,140,255,0.08)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.3"/>
+    <text x="48" y="66" font-family="DM Mono,monospace" font-size="8.5" fill="#4a6a9a" text-anchor="middle">F₂.₂</text>
+    <rect x="8" y="80" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="94" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">F₂.₃</text>
+    <circle cx="48" cy="118" r="4" fill="#4a8cff" opacity="0.9">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Bundle 3 -->
+  <g transform="translate(350, 105)">
+    <rect width="96" height="120" rx="8" fill="url(#bs-grad-fiber)" stroke="#4a8cff" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="48" y="16" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" text-anchor="middle" letter-spacing="1" opacity="0.8">Bundle₃</text>
+    <rect x="8" y="24" width="80" height="22" rx="4" fill="rgba(74,140,255,0.08)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.3"/>
+    <text x="48" y="38" font-family="DM Mono,monospace" font-size="8.5" fill="#4a6a9a" text-anchor="middle">F₃.₁</text>
+    <rect x="8" y="52" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="66" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">F₃.₂</text>
+    <rect x="8" y="80" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="94" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">F₃.₃</text>
+    <circle cx="48" cy="118" r="4" fill="#4a8cff" opacity="0.9">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- "..." dots between bundle 3 and n -->
+  <text x="490" y="168" font-family="DM Mono,monospace" font-size="22" fill="#2a3a55" text-anchor="middle" letter-spacing="6">···</text>
+
+  <!-- Bundle N -->
+  <g transform="translate(556, 105)">
+    <rect width="96" height="120" rx="8" fill="url(#bs-grad-fiber)" stroke="#4a8cff" stroke-width="1" stroke-opacity="0.4"/>
+    <!-- dashed border = variable -->
+    <rect x="3" y="3" width="90" height="114" rx="6" fill="none" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.2" stroke-dasharray="3 2"/>
+    <text x="48" y="16" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" text-anchor="middle" letter-spacing="1" opacity="0.8">Bundleₙ</text>
+    <rect x="8" y="24" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="38" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">Fₙ.₁</text>
+    <rect x="8" y="52" width="80" height="22" rx="4" fill="rgba(74,140,255,0.12)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.5"/>
+    <text x="48" y="66" font-family="DM Mono,monospace" font-size="8.5" fill="#7ab0ff" text-anchor="middle">Fₙ.₂</text>
+    <rect x="8" y="80" width="80" height="22" rx="4" fill="rgba(74,140,255,0.08)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.3"/>
+    <text x="48" y="94" font-family="DM Mono,monospace" font-size="8.5" fill="#4a6a9a" text-anchor="middle">Fₙ.₃</text>
+    <circle cx="48" cy="118" r="4" fill="#4a8cff" opacity="0.9">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="1.8s" begin="0.9s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Fiber unit label (right side annotation) -->
+  <line x1="660" x2="720" y1="150" y2="150" stroke="#2a3a55" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="724" y="154" font-family="DM Mono,monospace" font-size="9" fill="#4a5c7a" letter-spacing="0.5">← Fiber units</text>
+
+  <!-- Activation Signal Bar -->
+  <rect x="86" y="237" width="690" height="22" rx="5" fill="rgba(74,140,255,0.06)" stroke="#4a8cff" stroke-width="0.8" stroke-opacity="0.3"/>
+  <rect x="86" y="237" width="690" height="22" rx="5" fill="url(#bs-grad-activation)" opacity="0.5"/>
+  <text x="430" y="252" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" text-anchor="middle" letter-spacing="2" opacity="0.9">ACTIVATION SIGNAL ARRAY</text>
+
+  <!-- Animated signal sweep -->
+  <rect x="86" y="237" width="80" height="22" rx="5" fill="#4a8cff" opacity="0.15">
+    <animate attributeName="x" values="86;696;86" dur="3s" repeatCount="indefinite" calcMode="linear"/>
+  </rect>
+
+  <!-- Connecting lines from bundles to activation bar -->
+  <line x1="158" y1="223" x2="158" y2="237" stroke="#4a8cff" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+  <line x1="278" y1="223" x2="278" y2="237" stroke="#4a8cff" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+  <line x1="398" y1="223" x2="398" y2="237" stroke="#4a8cff" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+  <line x1="604" y1="223" x2="604" y2="237" stroke="#4a8cff" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- ARROW: Bundle Array → Proprioceptive Layer -->
+  <!-- ══════════════════════════════════════════════ -->
+  <line x1="430" y1="268" x2="430" y2="312" stroke="#4a8cff" stroke-width="2" opacity="0.7" marker-end="url(#bs-arrow-blue)"/>
+  <text x="446" y="293" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" opacity="0.6" letter-spacing="1">PHYSICAL STATE</text>
+
+  <!-- Animated pulse on this arrow -->
+  <circle r="3" fill="#4a8cff" opacity="0.9">
+    <animate attributeName="cx" values="430;430" dur="1.4s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="268;312" dur="1.4s" repeatCount="indefinite" calcMode="linear"/>
+    <animate attributeName="opacity" values="0;1;0" dur="1.4s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- LAYER 2: PROPRIOCEPTIVE LAYER -->
+  <!-- ══════════════════════════════════════════════ -->
+  <g filter="url(#bs-shadow-teal)">
+    <rect x="200" y="314" width="460" height="86" rx="12" fill="url(#bs-grad-proprio)" stroke="#00d4a8" stroke-width="1.2" stroke-opacity="0.7"/>
+    <rect x="200" y="314" width="460" height="2.5" rx="1" fill="#00d4a8" opacity="0.8"/>
+  </g>
+
+  <!-- Icon -->
+  <circle cx="232" cy="354" r="18" fill="rgba(0,212,168,0.1)" stroke="#00d4a8" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="232" y="360" font-family="DM Mono,monospace" font-size="16" text-anchor="middle" fill="#00d4a8">📡</text>
+
+  <!-- Labels -->
+  <text x="430" y="337" font-family="DM Mono,monospace" font-size="9" fill="#00d4a8" text-anchor="middle" letter-spacing="3" opacity="0.9">PROPRIOCEPTIVE LAYER</text>
+  <text x="430" y="358" font-family="Syne,sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">State Sensor Network</text>
+  <text x="430" y="376" font-family="DM Mono,monospace" font-size="10" fill="#2a8a72" text-anchor="middle">Force  ·  Position  ·  ΔLength  ·  Velocity  ·  Temperature</text>
+
+  <!-- Annotation right -->
+  <line x1="660" x2="700" y1="357" y2="357" stroke="#2a4a3a" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="704" y="361" font-family="DM Mono,monospace" font-size="9" fill="#4a5c7a" letter-spacing="0.5">← State sensors</text>
+
+  <!-- Three sensor indicator dots -->
+  <circle cx="288" cy="394" r="3" fill="#00d4a8" opacity="0.6">
+    <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2s" begin="0s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="330" cy="394" r="3" fill="#00d4a8" opacity="0.6">
+    <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2s" begin="0.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="372" cy="394" r="3" fill="#00d4a8" opacity="0.6">
+    <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2s" begin="0.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="414" cy="394" r="3" fill="#00d4a8" opacity="0.6">
+    <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2s" begin="1.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="456" cy="394" r="3" fill="#00d4a8" opacity="0.6">
+    <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2s" begin="1.6s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- ARROW: Proprioceptive → AI Control -->
+  <!-- ══════════════════════════════════════════════ -->
+  <line x1="430" y1="400" x2="430" y2="444" stroke="#00d4a8" stroke-width="2" opacity="0.7" marker-end="url(#bs-arrow-teal)"/>
+  <text x="446" y="425" font-family="DM Mono,monospace" font-size="9" fill="#00d4a8" opacity="0.6" letter-spacing="1">OBSERVATION</text>
+
+  <circle r="3" fill="#00d4a8">
+    <animate attributeName="cx" values="430;430" dur="1.4s" repeatCount="indefinite" begin="0.7s"/>
+    <animate attributeName="cy" values="400;444" dur="1.4s" repeatCount="indefinite" begin="0.7s" calcMode="linear"/>
+    <animate attributeName="opacity" values="0;1;0" dur="1.4s" repeatCount="indefinite" begin="0.7s"/>
+  </circle>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- LAYER 3: AI CONTROL INTERFACE -->
+  <!-- ══════════════════════════════════════════════ -->
+  <g filter="url(#bs-shadow-purple)">
+    <rect x="200" y="446" width="460" height="86" rx="12" fill="url(#bs-grad-ai)" stroke="#c084fc" stroke-width="1.2" stroke-opacity="0.7"/>
+    <rect x="200" y="446" width="460" height="2.5" rx="1" fill="#c084fc" opacity="0.8"/>
+    <!-- Double inner border for emphasis -->
+    <rect x="206" y="452" width="448" height="74" rx="9" fill="none" stroke="#c084fc" stroke-width="0.5" stroke-opacity="0.2" stroke-dasharray="4 3"/>
+  </g>
+
+  <!-- Icon -->
+  <circle cx="232" cy="486" r="18" fill="rgba(192,132,252,0.1)" stroke="#c084fc" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="232" y="492" font-family="DM Mono,monospace" font-size="16" text-anchor="middle" fill="#c084fc">🧠</text>
+
+  <!-- Labels -->
+  <text x="430" y="469" font-family="DM Mono,monospace" font-size="9" fill="#c084fc" text-anchor="middle" letter-spacing="3" opacity="0.9">AI CONTROL INTERFACE</text>
+  <text x="430" y="490" font-family="Syne,sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">Neural Network I/O</text>
+
+  <!-- Action → Observation pill -->
+  <rect x="300" y="500" width="260" height="24" rx="12" fill="rgba(192,132,252,0.1)" stroke="#c084fc" stroke-width="0.8" stroke-opacity="0.4"/>
+  <text x="380" y="516" font-family="DM Mono,monospace" font-size="10" fill="#c084fc" text-anchor="middle">Action</text>
+  <text x="430" y="516" font-family="DM Mono,monospace" font-size="10" fill="#6a4a8a">→</text>
+  <text x="480" y="516" font-family="DM Mono,monospace" font-size="10" fill="#00d4a8" text-anchor="middle">Observation</text>
+
+  <!-- Annotation right -->
+  <line x1="660" x2="700" y1="489" y2="489" stroke="#2a1a3a" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="704" y="493" font-family="DM Mono,monospace" font-size="9" fill="#4a5c7a" letter-spacing="0.5">← Neural net I/O</text>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- FEEDBACK LOOP (right side curved arrow going back up) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <path d="M 760 490 Q 810 490 810 360 Q 810 230 760 230" stroke="#c084fc" stroke-width="1.2" stroke-dasharray="5 4" opacity="0.35" marker-end="url(#bs-arrow-purple)"/>
+  <text x="822" y="365" font-family="DM Mono,monospace" font-size="9" fill="#c084fc" opacity="0.4" text-anchor="middle" transform="rotate(90,822,365)">RL FEEDBACK LOOP</text>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SCALE ANNOTATION (left side) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <line x1="50" y1="75" x2="50" y2="530" stroke="#2a3a55" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+  <line x1="45" y1="75" x2="55" y2="75" stroke="#4a8cff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="45" y1="260" x2="55" y2="260" stroke="#4a8cff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="45" y1="400" x2="55" y2="400" stroke="#00d4a8" stroke-width="1.5" opacity="0.6"/>
+  <line x1="45" y1="530" x2="55" y2="530" stroke="#c084fc" stroke-width="1.5" opacity="0.6"/>
+  <text x="20" y="172" font-family="DM Mono,monospace" font-size="8" fill="#4a5c7a" text-anchor="middle" transform="rotate(-90,20,172)">HARDWARE</text>
+  <text x="20" y="357" font-family="DM Mono,monospace" font-size="8" fill="#4a5c7a" text-anchor="middle" transform="rotate(-90,20,357)">SENSING</text>
+  <text x="20" y="487" font-family="DM Mono,monospace" font-size="8" fill="#4a5c7a" text-anchor="middle" transform="rotate(-90,20,487)">AI</text>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- BOTTOM NOTE -->
+  <!-- ══════════════════════════════════════════════ -->
+  <text x="430" y="558" font-family="DM Mono,monospace" font-size="9" fill="#2a3a55" text-anchor="middle" letter-spacing="1">
+    Fiber activation is learned, not programmed — the neural network discovers optimal contraction patterns through RL
+  </text>
+</svg>
+      </div>
+      <div class="brain-legend">
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#4a8cff"></span>Fiber Bundle Array</div>
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#00d4a8"></span>Proprioceptive Sensing</div>
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#c084fc"></span>AI Control Interface</div>
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#c084fc;opacity:0.4"></span>RL Feedback Loop</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 BRAIN -->
+  <section class="section" id="brain">
+    <div class="section-id">04 · Technology II</div>
+    <h2 class="section-title">Autonomous AI Brain: <span class="accent2">The Mind</span></h2>
+    <div class="lead">
+      SYNAPEX does not build a single AI. It builds an ecosystem of interdependent AI agents
+      whose collective interaction produces genuinely autonomous behaviour.
+    </div>
+
+    <h3>The Problem with Monolithic AI</h3>
+    <p>
+      Every major AI system in deployment today — from language models to robotic controllers —
+      is architecturally monolithic. A single model, however large, is ultimately a single point
+      of failure, a single locus of decision-making, and a single surface for catastrophic error.
+    </p>
+    <p>
+      More fundamentally, monolithic architectures produce behaviour that is statistically averaged
+      across training data rather than genuinely reasoned. A system with one decision-maker cannot
+      check itself. It cannot disagree with itself. It cannot develop the internal tension that,
+      in biological systems, produces careful, considered, adaptive behaviour.
+    </p>
+
+    <h3>The Predator-Prey Architecture</h3>
+    <p>
+      SYNAPEX introduces a novel multi-agent brain architecture inspired by ecological predator-prey
+      dynamics. The core insight is borrowed from ecology: in a healthy ecosystem, no single
+      organism dominates unchecked. Every apex predator is simultaneously prey to something.
+      This mutual dependence produces stability, resilience, and emergent complexity that no
+      single organism could achieve alone.
+    </p>
+    <p>
+      Applied to AI architecture, this principle produces a system of specialised modules where
+      each module's output is the input — and the constraint — on at least one other module.
+      No single module can dominate the decision process. Pathological outputs from any one module
+      are naturally suppressed by the response of the others.
+    </p>
+
+    <div class="brain-diagram">
+      <div class="brain-diagram-inner">
+        <svg viewBox="0 0 900 560" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+          <defs>
+            <filter id="glow-blue2" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="8" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="node-shadow-b">
+              <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#4a8cff" flood-opacity="0.25"/>
+            </filter>
+            <filter id="node-shadow-t">
+              <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#00d4a8" flood-opacity="0.25"/>
+            </filter>
+            <filter id="node-shadow-g">
+              <feDropShadow dx="0" dy="4" stdDeviation="14" flood-color="#e8c87a" flood-opacity="0.3"/>
+            </filter>
+            <filter id="node-shadow-p">
+              <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#c084fc" flood-opacity="0.25"/>
+            </filter>
+            <linearGradient id="gp" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1a2a4a"/><stop offset="100%" stop-color="#0c1830"/>
+            </linearGradient>
+            <linearGradient id="ga" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0f2a3a"/><stop offset="100%" stop-color="#081820"/>
+            </linearGradient>
+            <linearGradient id="gr" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#0c0c1e"/>
+            </linearGradient>
+            <linearGradient id="gc" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2a1a10"/><stop offset="100%" stop-color="#1a0e08"/>
+            </linearGradient>
+            <linearGradient id="gpl" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0d2a1a"/><stop offset="100%" stop-color="#081810"/>
+            </linearGradient>
+            <linearGradient id="gm" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1a0a18"/><stop offset="100%" stop-color="#0e0610"/>
+            </linearGradient>
+            <marker id="ab" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#4a8cff" opacity="0.9"/>
+            </marker>
+            <marker id="at" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#00d4a8" opacity="0.9"/>
+            </marker>
+            <marker id="ag" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#e8c87a" opacity="0.9"/>
+            </marker>
+            <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#ff5577" opacity="0.9"/>
+            </marker>
+            <marker id="ag-rev" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto-start-reverse">
+              <path d="M8,0 L8,6 L0,3 z" fill="#e8c87a" opacity="0.9"/>
+            </marker>
+          </defs>
+          <pattern id="wgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M40 0L0 0 0 40" fill="none" stroke="#4a8cff" stroke-width="0.3" opacity="0.08"/>
+          </pattern>
+          <rect width="900" height="560" fill="url(#wgrid)"/>
+          <ellipse cx="450" cy="280" rx="180" ry="100" fill="rgba(74,140,255,0.02)"/>
+          <!-- Connections -->
+          <path d="M 290 120 L 530 120" stroke="#4a8cff" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" marker-end="url(#ab)"/>
+          <text x="410" y="113" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" opacity="0.7" text-anchor="middle" letter-spacing="1">SENSORY DATA</text>
+          <path d="M 530 148 Q 530 170 410 170 Q 290 170 290 148" stroke="#00d4a8" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5" marker-end="url(#at)"/>
+          <text x="410" y="182" font-family="DM Mono,monospace" font-size="9" fill="#00d4a8" opacity="0.6" text-anchor="middle" letter-spacing="1">FOCUS SIGNAL</text>
+          <path d="M 210 198 L 210 300" stroke="#4a8cff" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" marker-end="url(#ab)"/>
+          <text x="195" y="256" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" opacity="0.7" text-anchor="middle" letter-spacing="1" transform="rotate(-90,195,256)">PERCEPT</text>
+          <path d="M 370 348 L 530 348" stroke="#e8c87a" stroke-width="1.8" opacity="0.7" marker-end="url(#ag)" marker-start="url(#ag-rev)"/>
+          <text x="450" y="341" font-family="DM Mono,monospace" font-size="9" fill="#e8c87a" opacity="0.8" text-anchor="middle" letter-spacing="1">CONSTRAINT</text>
+          <path d="M 610 398 Q 610 470 530 470" stroke="#ff5577" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" marker-end="url(#ar)"/>
+          <text x="628" y="440" font-family="DM Mono,monospace" font-size="9" fill="#ff5577" opacity="0.6" text-anchor="start" letter-spacing="1">VETO</text>
+          <path d="M 370 488 L 530 488" stroke="#00d4a8" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" marker-end="url(#at)"/>
+          <text x="450" y="481" font-family="DM Mono,monospace" font-size="9" fill="#00d4a8" opacity="0.7" text-anchor="middle" letter-spacing="1">ACTION PLAN</text>
+          <path d="M 760 488 L 840 488" stroke="#c084fc" stroke-width="2" opacity="0.7" marker-end="url(#ab)"/>
+          <path d="M 840 510 Q 890 560 450 560 Q 80 560 80 490 Q 80 120 140 120" stroke="#4a8cff" stroke-width="1" stroke-dasharray="5 4" opacity="0.25" marker-end="url(#ab)"/>
+          <path d="M 60 120 L 140 120" stroke="#4a8cff" stroke-width="2" opacity="0.7" marker-end="url(#ab)"/>
+          <path d="M 210 430 L 210 450" stroke="#00d4a8" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" marker-end="url(#at)"/>
+          <!-- Node: PERCEPTION -->
+          <g filter="url(#node-shadow-b)" transform="translate(140,88)">
+            <rect width="150" height="72" rx="10" fill="url(#gp)" stroke="#4a8cff" stroke-width="1.2" stroke-opacity="0.7"/>
+            <rect width="150" height="2" rx="1" fill="#4a8cff" opacity="0.8"/>
+            <circle cx="24" cy="20" r="10" fill="rgba(74,140,255,0.15)" stroke="#4a8cff" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="24" y="25" font-size="12" text-anchor="middle" fill="#4a8cff">👁</text>
+            <text x="75" y="18" font-family="DM Mono,monospace" font-size="8" fill="#4a8cff" text-anchor="middle" letter-spacing="2" opacity="0.8">MODULE 01</text>
+            <text x="75" y="36" font-family="Syne,sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">PERCEPTION</text>
+            <text x="75" y="52" font-family="DM Mono,monospace" font-size="8" fill="#4a6a9a" text-anchor="middle">Vision · Depth · Proprio</text>
+            <text x="75" y="64" font-family="DM Mono,monospace" font-size="8" fill="#4a6a9a" text-anchor="middle">Multi-modal sensing</text>
+          </g>
+          <!-- Node: ATTENTION -->
+          <g filter="url(#node-shadow-t)" transform="translate(530,88)">
+            <rect width="150" height="72" rx="10" fill="url(#ga)" stroke="#00d4a8" stroke-width="1.2" stroke-opacity="0.7"/>
+            <rect width="150" height="2" rx="1" fill="#00d4a8" opacity="0.8"/>
+            <circle cx="24" cy="20" r="10" fill="rgba(0,212,168,0.12)" stroke="#00d4a8" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="24" y="25" font-size="12" text-anchor="middle" fill="#00d4a8">🎯</text>
+            <text x="75" y="18" font-family="DM Mono,monospace" font-size="8" fill="#00d4a8" text-anchor="middle" letter-spacing="2" opacity="0.8">MODULE 02</text>
+            <text x="75" y="36" font-family="Syne,sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">ATTENTION</text>
+            <text x="75" y="52" font-family="DM Mono,monospace" font-size="8" fill="#2a6a5a" text-anchor="middle">Dynamic focus allocation</text>
+            <text x="75" y="64" font-family="DM Mono,monospace" font-size="8" fill="#2a6a5a" text-anchor="middle">Noise suppression</text>
+          </g>
+          <!-- Node: REASONING -->
+          <g filter="url(#node-shadow-b)" transform="translate(140,306)">
+            <rect width="230" height="80" rx="10" fill="url(#gr)" stroke="#4a8cff" stroke-width="1.2" stroke-opacity="0.7"/>
+            <rect width="230" height="2" rx="1" fill="#4a8cff" opacity="0.8"/>
+            <circle cx="24" cy="22" r="11" fill="rgba(74,140,255,0.15)" stroke="#4a8cff" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="24" y="27" font-size="13" text-anchor="middle" fill="#4a8cff">💭</text>
+            <text x="120" y="20" font-family="DM Mono,monospace" font-size="8" fill="#4a8cff" text-anchor="middle" letter-spacing="2" opacity="0.8">MODULE 03</text>
+            <text x="120" y="40" font-family="Syne,sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">REASONING</text>
+            <text x="120" y="58" font-family="DM Mono,monospace" font-size="8" fill="#4a6a9a" text-anchor="middle">Symbolic + sub-symbolic inference</text>
+            <text x="120" y="70" font-family="DM Mono,monospace" font-size="8" fill="#4a6a9a" text-anchor="middle">Candidate action generation</text>
+          </g>
+          <!-- Node: CONFLICT ARBITER -->
+          <g filter="url(#node-shadow-g)" transform="translate(530,306)">
+            <rect width="160" height="80" rx="10" fill="url(#gc)" stroke="#e8c87a" stroke-width="1.5" stroke-opacity="0.9"/>
+            <rect x="4" y="4" width="152" height="72" rx="7" fill="none" stroke="#e8c87a" stroke-width="0.5" stroke-opacity="0.3" stroke-dasharray="3 2"/>
+            <rect width="160" height="2" rx="1" fill="#e8c87a" opacity="0.9"/>
+            <circle cx="24" cy="22" r="11" fill="rgba(232,200,122,0.15)" stroke="#e8c87a" stroke-width="1" stroke-opacity="0.6"/>
+            <text x="24" y="28" font-size="13" text-anchor="middle" fill="#e8c87a">⚖️</text>
+            <text x="80" y="20" font-family="DM Mono,monospace" font-size="8" fill="#e8c87a" text-anchor="middle" letter-spacing="2" opacity="0.8">ARBITER</text>
+            <text x="80" y="40" font-family="Syne,sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">CONFLICT</text>
+            <text x="80" y="56" font-family="Syne,sans-serif" font-size="14" font-weight="700" fill="#e8c87a" text-anchor="middle">ARBITER</text>
+            <text x="80" y="71" font-family="DM Mono,monospace" font-size="8" fill="#7a6a3a" text-anchor="middle">Veto · Safety · Alignment</text>
+          </g>
+          <!-- Node: PLANNING -->
+          <g filter="url(#node-shadow-t)" transform="translate(140,450)">
+            <rect width="230" height="72" rx="10" fill="url(#gpl)" stroke="#00d4a8" stroke-width="1.2" stroke-opacity="0.7"/>
+            <rect width="230" height="2" rx="1" fill="#00d4a8" opacity="0.8"/>
+            <circle cx="24" cy="20" r="10" fill="rgba(0,212,168,0.12)" stroke="#00d4a8" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="24" y="25" font-size="12" text-anchor="middle" fill="#00d4a8">🗺️</text>
+            <text x="120" y="18" font-family="DM Mono,monospace" font-size="8" fill="#00d4a8" text-anchor="middle" letter-spacing="2" opacity="0.8">MODULE 05</text>
+            <text x="120" y="36" font-family="Syne,sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">PLANNING</text>
+            <text x="120" y="52" font-family="DM Mono,monospace" font-size="8" fill="#2a6a5a" text-anchor="middle">Temporal action sequencing</text>
+            <text x="120" y="64" font-family="DM Mono,monospace" font-size="8" fill="#2a6a5a" text-anchor="middle">Short + long horizon goals</text>
+          </g>
+          <!-- Node: MOTOR -->
+          <g filter="url(#node-shadow-p)" transform="translate(530,450)">
+            <rect width="230" height="72" rx="10" fill="url(#gm)" stroke="#c084fc" stroke-width="1.2" stroke-opacity="0.7"/>
+            <rect width="230" height="2" rx="1" fill="#c084fc" opacity="0.8"/>
+            <circle cx="24" cy="20" r="10" fill="rgba(192,132,252,0.12)" stroke="#c084fc" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="24" y="25" font-size="12" text-anchor="middle" fill="#c084fc">🦾</text>
+            <text x="120" y="18" font-family="DM Mono,monospace" font-size="8" fill="#c084fc" text-anchor="middle" letter-spacing="2" opacity="0.8">MODULE 06</text>
+            <text x="120" y="36" font-family="Syne,sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">MOTOR CONTROL</text>
+            <text x="120" y="52" font-family="DM Mono,monospace" font-size="8" fill="#6a4a8a" text-anchor="middle">RL-trained actuation signals</text>
+            <text x="120" y="64" font-family="DM Mono,monospace" font-size="8" fill="#6a4a8a" text-anchor="middle">Muscle fiber interface</text>
+          </g>
+          <!-- Labels -->
+          <text x="48" y="114" font-family="DM Mono,monospace" font-size="8.5" fill="#4a8cff" opacity="0.6" text-anchor="middle" letter-spacing="1">SENSORS</text>
+          <text x="855" y="480" font-family="DM Mono,monospace" font-size="8.5" fill="#c084fc" opacity="0.6" text-anchor="middle" letter-spacing="1">BODY</text>
+          <text x="450" y="553" font-family="DM Mono,monospace" font-size="9" fill="#4a8cff" opacity="0.3" text-anchor="middle" letter-spacing="2">PROPRIOCEPTIVE FEEDBACK LOOP</text>
+          <text x="450" y="290" font-family="Syne,sans-serif" font-size="10" font-weight="700" fill="#4a8cff" opacity="0.1" text-anchor="middle" letter-spacing="6">EMERGENT DECISION</text>
+          <!-- Animated pulses -->
+          <circle r="3" fill="#4a8cff" opacity="0.8">
+            <animate attributeName="cx" values="160;530" dur="2s" repeatCount="indefinite" calcMode="linear"/>
+            <animate attributeName="cy" values="120;120" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle r="3" fill="#00d4a8" opacity="0.8">
+            <animate attributeName="cx" values="370;530" dur="1.8s" repeatCount="indefinite" calcMode="linear"/>
+            <animate attributeName="cy" values="488;488" dur="1.8s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite"/>
+          </circle>
+          <circle r="3" fill="#e8c87a" opacity="0.8">
+            <animate attributeName="cx" values="375;525" dur="1.5s" repeatCount="indefinite" calcMode="linear" begin="0.5s"/>
+            <animate attributeName="cy" values="348;348" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+            <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+          </circle>
+          <circle r="3" fill="#4a8cff" opacity="0.8">
+            <animate attributeName="cx" values="210;210" dur="1.6s" repeatCount="indefinite" calcMode="linear" begin="0.3s"/>
+            <animate attributeName="cy" values="200;300" dur="1.6s" repeatCount="indefinite" begin="0.3s" calcMode="linear"/>
+            <animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite" begin="0.3s"/>
+          </circle>
+        </svg>
+      </div>
+      <div class="brain-legend">
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#4a8cff"></span>Sensory / Cognitive flow</div>
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#00d4a8"></span>Attention / Planning</div>
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#e8c87a"></span>Constraint / Arbitration</div>
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#ff5577"></span>Veto signal</div>
+        <div class="brain-legend-item"><span class="brain-dot" style="background:#c084fc"></span>Motor output</div>
+      </div>
+    </div>
+
+    <h3>Module Specialisations</h3>
+    <div class="cards-2">
+      <div class="card">
+        <div class="card-title">👁️ Perception Module</div>
+        <div class="card-text">Processes multi-modal sensor input: vision (depth + RGB), proprioception from the muscle system, and environmental context. Produces structured scene representations for downstream modules.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 Attention Module</div>
+        <div class="card-text">Dynamically allocates computational resources across the perception field. Constrains and focuses the reasoning module — acting as a biological attention system, filtering noise before it reaches higher cognition.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">💭 Reasoning Module</div>
+        <div class="card-text">Abstract symbolic and sub-symbolic reasoning over the attended perception field. Produces candidate action plans subject to validation by the conflict arbiter.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚖️ Conflict Arbiter</div>
+        <div class="card-text">The system's immune function. Evaluates outputs from all modules for internal consistency, safety constraints, and goal alignment. The only module with veto power — but unable to initiate actions itself.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗺️ Planning Module</div>
+        <div class="card-text">Translates approved reasoning outputs into temporal action sequences. Operates at multiple time horizons — from sub-second motor planning to long-horizon goal pursuit.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🦿 Motor Module</div>
+        <div class="card-text">The interface between intelligence and body. Translates planned actions into activation signals for the SYNAPEX muscle system. Trained via RL with continuous proprioceptive feedback.</div>
+      </div>
+    </div>
+
+    <div class="callout callout-teal">
+      <strong>Why This Matters</strong>
+      <p>The predator-prey architecture produces a system that is inherently more robust, more interpretable,
+      and more aligned than any monolithic AI. When the system makes a decision, that decision has survived
+      the scrutiny of every module in the chain. This is not a safety feature added on top of intelligence —
+      it is intelligence itself, structured the way biological intelligence is structured.</p>
+    </div>
+  </section>
+
+  <!-- 05 LAB -->
+  <section class="section" id="lab">
+    <div class="section-id">05 · Technology III</div>
+    <h2 class="section-title">The Virtual <span class="accent">Research Laboratory</span></h2>
+    <div class="lead">
+      SYNAPEX is not only building a robot. It is building the infrastructure that allows
+      anyone to build what comes next.
+    </div>
+
+    <p>
+      The SYNAPEX Virtual Research Laboratory is an open, token-gated platform that democratises
+      access to the tools of advanced AI and robotics research. Independent inventors, developers,
+      and researchers who lack institutional affiliation or capital can access GPU compute,
+      pre-trained models, simulation environments, and a global network of collaborators.
+    </p>
+
+    <h3>Platform Components</h3>
+
+    <div class="cards-3">
+      <div class="card">
+        <span class="card-icon">🖥️</span>
+        <div class="card-title">Compute Marketplace</div>
+        <div class="card-text">Distributed GPU network accessible via $SYNX token. Pay-as-you-go training runs, inference endpoints, and simulation environments. Real infrastructure, real compute, real results.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔬</span>
+        <div class="card-title">Model Repository</div>
+        <div class="card-text">Access to SYNAPEX-trained models: vision systems, motor controllers, perception modules. Fine-tune on your own data. Build on the protocol's research output without starting from scratch.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🌍</span>
+        <div class="card-title">Collaboration Network</div>
+        <div class="card-text">Connect with inventors, developers, and researchers globally. Share datasets, co-author experiments, form teams. The lab is a living community, not a static platform.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🗳️</span>
+        <div class="card-title">Research DAO</div>
+        <div class="card-text">Token holders vote on research priorities, resource allocation, and platform development. The community collectively decides what SYNAPEX builds next.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📊</span>
+        <div class="card-title">Simulation Suite</div>
+        <div class="card-text">Physics-accurate simulation environments for training embodied AI. Pre-built environments for locomotion, manipulation, and navigation tasks. Sim-to-real transfer tools included.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🛡️</span>
+        <div class="card-title">IP Protection Tools</div>
+        <div class="card-text">On-chain IP registration for research outputs. Inventors retain ownership of what they build. Smart contract licensing enables monetisation without surrendering intellectual property.</div>
+      </div>
+    </div>
+
+    <div class="callout callout-gold">
+      <strong>Access Model</strong>
+      <p>Basic platform access is open to all. Advanced compute, premium models, and governance voting
+      require $SYNX token holdings. Contributors who publish research, contribute datasets, or
+      build platform tools earn $SYNX rewards — creating a virtuous cycle between participation and access.</p>
+    </div>
+  </section>
+
+  <!-- 06 TOKEN -->
+  <section class="section" id="token">
+    <div class="section-id">06 · Token Economy</div>
+    <h2 class="section-title">The <span class="accent">$SYNX</span> Token</h2>
+    <div class="lead">
+      $SYNX is not a speculative asset. It is a claim on computational infrastructure —
+      the fuel that powers everything SYNAPEX builds and enables.
+    </div>
+
+    <h3>Token Utility</h3>
+    <p>
+      Every function of the SYNAPEX Protocol is denominated in $SYNX. This is not a design choice
+      made for tokenomics aesthetics — it reflects the fundamental architecture of the system.
+      Compute costs money. Research costs money. Governance requires skin in the game.
+      $SYNX is the unit of account that makes all of this coherent.
+    </p>
+
+    <div class="cards-2">
+      <div class="card">
+        <span class="card-icon">⚡</span>
+        <div class="card-title">Compute Access</div>
+        <div class="card-text">$SYNX is the payment unit for GPU compute on the SYNAPEX network. One token represents a defined quantum of computational work. The token is backed by real infrastructure.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🤖</span>
+        <div class="card-title">Model Access</div>
+        <div class="card-text">Access to SYNAPEX AI models — vision systems, motor controllers, multi-agent brain modules — is denominated in $SYNX. Stake tokens for sustained access; spend tokens for individual inference.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🗳️</span>
+        <div class="card-title">Governance Rights</div>
+        <div class="card-text">Token holders vote on protocol upgrades, research budget allocation, and platform policy. Voting weight is proportional to token holdings, with safeguards against plutocratic capture.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔬</span>
+        <div class="card-title">Lab Currency</div>
+        <div class="card-text">All transactions within the Virtual Research Laboratory — dataset purchases, collaboration contracts, IP licensing — are denominated in $SYNX. The lab is a closed-loop economy.</div>
+      </div>
+    </div>
+
+    <h3>Value Accrual Mechanism</h3>
+    <p>
+      As the SYNAPEX Protocol grows — more researchers, more models, more compute demand, more platform
+      activity — the demand for $SYNX increases mechanically. The token is not valued on speculation
+      about future cash flows. It is valued on present and future access to a real, functioning
+      computational infrastructure.
+    </p>
+    <p>
+      A portion of all platform fees is used to permanently remove $SYNX from circulation,
+      creating a deflationary pressure that grows proportionally with protocol usage.
+      This burn mechanism ensures that early adopters and long-term holders benefit from
+      the protocol's growth in a mathematically predictable way.
+    </p>
+  </section>
+
+  <!-- 07 TOKENOMICS -->
+  <section class="section" id="tokenomics">
+    <div class="section-id">07 · Tokenomics</div>
+    <h2 class="section-title">Token <span class="accent">Distribution</span></h2>
+    <div class="lead">
+      Total supply: <strong>1,000,000,000 $SYNX</strong>. Fixed. No additional minting.
+      IDO price: <strong>$0.004 per token</strong> · FDV: <strong>$4,000,000</strong>.
+      IDO target: <strong>$800,000</strong>. Deflationary via fee burn.
+    </div>
+
+    <div class="token-table-wrap">
+    <table class="token-table">
+      <thead>
+        <tr>
+          <th>Allocation</th>
+          <th>%</th>
+          <th>Tokens</th>
+          <th>Vesting</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Public Sale / IDO</td>
+          <td class="pct">20%</td>
+          <td>200,000,000</td>
+          <td>30% TGE, 6mo linear</td>
+          <td>Community fundraise · $800,000 at IDO price</td>
+        </tr>
+        <tr>
+          <td>Ecosystem &amp; Research</td>
+          <td class="pct">20%</td>
+          <td>200,000,000</td>
+          <td>3yr linear, monthly</td>
+          <td>Lab grants, model rewards, contributor incentives</td>
+        </tr>
+        <tr>
+          <td>Team &amp; Founders</td>
+          <td class="pct">15%</td>
+          <td>150,000,000</td>
+          <td>1yr cliff, 3yr linear</td>
+          <td>Founder &amp; core team long-term alignment</td>
+        </tr>
+        <tr>
+          <td>Foundation Reserve</td>
+          <td class="pct">13%</td>
+          <td>130,000,000</td>
+          <td>2yr cliff, 3yr linear</td>
+          <td>Long-term sustainability &amp; Series A bridge</td>
+        </tr>
+        <tr>
+          <td>Liquidity — DEX Launch</td>
+          <td class="pct">5%</td>
+          <td>50,000,000</td>
+          <td>Immediate · locked in LP</td>
+          <td>Day-1 deep liquidity · paired with $200,000 USDT</td>
+        </tr>
+        <tr>
+          <td>Liquidity — DEX Growth</td>
+          <td class="pct">5%</td>
+          <td>50,000,000</td>
+          <td>Released monthly over 12mo</td>
+          <td>Progressive pool deepening as protocol grows</td>
+        </tr>
+        <tr>
+          <td>Liquidity — CEX Reserve</td>
+          <td class="pct">5%</td>
+          <td>50,000,000</td>
+          <td>Locked until CEX listing</td>
+          <td>Exchange listings &amp; market maker infrastructure</td>
+        </tr>
+        <tr>
+          <td>Strategic Partners</td>
+          <td class="pct">10%</td>
+          <td>100,000,000</td>
+          <td>6mo cliff, 18mo linear</td>
+          <td>GPU providers, AI labs, research institutions</td>
+        </tr>
+        <tr>
+          <td>Private Round</td>
+          <td class="pct">7%</td>
+          <td>70,000,000</td>
+          <td>6mo cliff, 18mo linear</td>
+          <td>Pre-IDO capital formation · $0.0024/token</td>
+        </tr>
+        <tr>
+          <td>Community Airdrop</td>
+          <td class="pct">5%</td>
+          <td>50,000,000</td>
+          <td>TGE + 6mo linear</td>
+          <td>Pre-lab &amp; testnet early adopters</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h4>Allocation Visualisation</h4>
+    <div class="alloc-row"><span class="alloc-label">Public Sale / IDO</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:20%"></div></div><span class="alloc-pct">20%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Ecosystem &amp; Research</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:20%"></div></div><span class="alloc-pct">20%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Team &amp; Founders</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:15%"></div></div><span class="alloc-pct">15%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Foundation Reserve</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:13%"></div></div><span class="alloc-pct">13%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Liquidity (DEX Launch)</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:5%;background:linear-gradient(90deg,#00d4a8,#4a8cff)"></div></div><span class="alloc-pct" style="color:var(--accent2)">5%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Liquidity (DEX Growth)</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:5%;background:linear-gradient(90deg,#00d4a8,#4a8cff)"></div></div><span class="alloc-pct" style="color:var(--accent2)">5%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Liquidity (CEX Reserve)</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:5%;background:linear-gradient(90deg,#00d4a8,#4a8cff)"></div></div><span class="alloc-pct" style="color:var(--accent2)">5%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Strategic Partners</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:10%"></div></div><span class="alloc-pct">10%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Private Round</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:7%;background:linear-gradient(90deg,#e8c87a,#ff9a3d)"></div></div><span class="alloc-pct" style="color:var(--gold)">7%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Community Airdrop</span><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:5%"></div></div><span class="alloc-pct">5%</span></div>
+
+    <h3>Liquidity Architecture</h3>
+    <p>
+      SYNAPEX dedicates 15% of total supply — 150,000,000 $SYNX — exclusively to market
+      infrastructure. The three-pool structure ensures liquidity scales with the protocol.
+      The DEX Launch pool is paired with $200,000 USDT from IDO proceeds on day one,
+      establishing deep and immediate price discovery. The Growth Reserve deepens the pool
+      progressively over 12 months. The CEX Reserve is held in escrow until a confirmed
+      tier-2 exchange listing and deployed alongside a professional market maker to ensure
+      tight spreads from day one on every new venue.
+    </p>
+
+    <h3>Use of Proceeds</h3>
+    <p>
+      $800,000 raised through the IDO and private round is deployed across four strategic
+      priorities. All treasury spending is subject to DAO-approved quarterly budgets with
+      full on-chain transparency. Funds are held in a 3-of-5 multisig wallet — no single
+      signatory can move funds unilaterally.
+    </p>
+    <div class="cards-2">
+      <div class="card">
+        <span class="card-icon">🔬</span>
+        <div class="card-title">Research &amp; Development — 45%</div>
+        <div class="card-text">
+          Artificial muscle prototype and materials.<br/>
+          Own GPU server cluster acquired post-IDO.<br/>
+          RL motor model training runs.<br/>
+          Multi-agent brain development &amp; simulation.
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-icon">💧</span>
+        <div class="card-title">Market Infrastructure — 25%</div>
+        <div class="card-text">
+          DEX launch pool USDT pairing ($200,000).<br/>
+          Progressive liquidity deepening, 12 months.<br/>
+          CEX listing fees and market maker deposits.<br/>
+          On-chain liquidity incentive programmes.
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📣</span>
+        <div class="card-title">Growth &amp; Ecosystem — 20%</div>
+        <div class="card-text">
+          KOL partnerships and community campaigns.<br/>
+          Developer SDK, documentation, hackathons.<br/>
+          Virtual Lab user acquisition and retention.<br/>
+          Academic and institutional partnerships.
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚙️</span>
+        <div class="card-title">Operations &amp; Legal — 10%</div>
+        <div class="card-text">
+          Smart contract audit (CertiK / Hacken).<br/>
+          Legal structure and MiCA compliance.<br/>
+          Core team and platform infrastructure.<br/>
+          Treasury reserve for opportunistic deployment.
+        </div>
+      </div>
+    </div>
+
+    <h3>GPU Infrastructure — Owned, Not Rented</h3>
+    <p>
+      From day one of IDO proceeds, SYNAPEX transitions from cloud compute to owned
+      infrastructure. Owned GPU hardware is a verifiable, DAO-governed protocol asset
+      that gives the $SYNX compute token tangible, auditable backing. Idle capacity
+      is made available to token holders — generating protocol revenue from the moment
+      the first server goes live.
+    </p>
+    <div class="cards-3">
+      <div class="card">
+        <span class="card-icon">⚡</span>
+        <div class="card-title">Pre-IDO · Agile Cloud</div>
+        <div class="card-text">
+          Akash Network &amp; Vast.ai for R&amp;D.<br/>
+          Maximum flexibility, instant scale.<br/>
+          No capital in depreciating hardware.<br/>
+          Full focus on model development.
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🖥️</span>
+        <div class="card-title">Post-IDO · First Owned Server</div>
+        <div class="card-text">
+          Dedicated 4× RTX 4090 cluster acquired.<br/>
+          Idle capacity rented for $SYNX.<br/>
+          Protocol-owned, DAO-governed asset.<br/>
+          Cloud reserved for burst workloads.
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🏭</span>
+        <div class="card-title">Series A · Full Cluster</div>
+        <div class="card-text">
+          20–50 GPU colocation deployment.<br/>
+          Complete compute independence.<br/>
+          External revenue from cluster access.<br/>
+          Strongest possible token backing.
+        </div>
+      </div>
+    </div>
+
+    <h3>Burn Mechanism</h3>
+    <p>
+      5% of all platform fees — compute purchases, model access, laboratory transactions — are
+      permanently and irrevocably burned at the smart contract level. No governance vote can
+      override this mechanism. As the SYNAPEX ecosystem scales, every transaction makes
+      every remaining token more scarce. Growth and scarcity are structurally inseparable
+      from the first day of platform operation.
+    </p>
+
+    <div class="callout callout-gold">
+      <strong>Founder Alignment — No Early Exits</strong>
+      <p>Founder allocation (15% of supply) carries a 12-month cliff and 36-month linear vesting.
+      Zero founder tokens enter circulation during the first year. All operational costs are
+      paid from treasury in USDT — never from token sales.</p>
+    </div>
+
+    <h3>Path to Series A</h3>
+    <p>
+      Series A is a professional venture capital round targeting $2,000,000–$5,000,000 from
+      leading AI, robotics, and Web3 funds — in exchange for equity in the SYNAPEX company
+      entity. It is the bridge from community-funded protocol to fully-capitalised technology
+      company, positioned to be reached within 18–24 months of IDO.
+    </p>
+    <div class="cards-2">
+      <div class="card">
+        <div class="card-title">🎯 Series A Milestones</div>
+        <div class="card-text">
+          1,000+ active Virtual Lab users<br/>
+          Measurable on-chain compute consumption<br/>
+          Functioning muscle prototype — public demo<br/>
+          Multi-agent brain v1 running in simulation<br/>
+          Core team of 3–5 operational
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🚀 What Series A Builds</div>
+        <div class="card-text">
+          Full team of 8–15 researchers &amp; engineers<br/>
+          Own 20–50 GPU colocation cluster<br/>
+          Dedicated physical research laboratory<br/>
+          Full humanoid prototype — body &amp; mind<br/>
+          B2B licensing &amp; hardware programme
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 DAO -->
+  <section class="section" id="dao">
+    <div class="section-id">08 · Governance</div>
+    <h2 class="section-title">DAO <span class="accent2">Governance</span></h2>
+    <div class="lead">
+      SYNAPEX is governed by those who build it and use it — not by a board,
+      not by a corporation, not by any single actor.
+    </div>
+
+    <p>
+      The SYNAPEX DAO operates as an on-chain governance system where $SYNX holders vote on
+      protocol-level decisions. This includes research budget allocation, platform feature priorities,
+      strategic partnerships, and smart contract upgrades. Proposals can be submitted by any holder
+      of sufficient token threshold; voting is weighted by holdings, with quadratic options
+      considered for future implementation to reduce plutocratic concentration.
+    </p>
+
+    <h3>Governance Scope</h3>
+    <div class="cards-2">
+      <div class="card">
+        <div class="card-title">📋 Research Priorities</div>
+        <div class="card-text">The DAO votes on which research directions receive ecosystem funding. Community members can propose new research tracks, datasets to acquire, or model capabilities to develop.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">💰 Treasury Allocation</div>
+        <div class="card-text">Ecosystem reserve deployment is subject to DAO approval for grants above a defined threshold. Smaller grants are administered by an elected council with defined term limits.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔧 Protocol Upgrades</div>
+        <div class="card-text">Changes to smart contracts, fee structures, and tokenomics parameters require DAO supermajority approval. A timelock mechanism ensures the community has time to respond to any proposed change.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🤝 Partnerships</div>
+        <div class="card-text">Strategic partnerships — particularly those involving GPU infrastructure providers or AI research institutions — are approved by the DAO, ensuring alignment between protocol growth and community interests.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Governance Safeguard</strong>
+      <p>No single wallet may hold more than 5% of circulating supply without triggering
+      enhanced disclosure requirements. Founder and team tokens are excluded from governance
+      votes during the vesting period, preventing early-stage concentration of control.</p>
+    </div>
+  </section>
+
+  <!-- 09 ROADMAP -->
+  <section class="section" id="roadmap">
+    <div class="section-id">09 · Roadmap</div>
+    <h2 class="section-title">Development <span class="accent">Roadmap</span></h2>
+    <div class="lead">
+      Five phases. Each delivers standalone value and funds the next.
+      Phase 0 proves the concept. Phase 1 secures capital. Phase 2 builds the world's first community-funded autonomous humanoid.
+    </div>
+
+    <div class="roadmap">
+      <div class="roadmap-item">
+        <div class="roadmap-phase">Phase 0 · Now — Q2 2026 · Bootstrap</div>
+        <div class="roadmap-title">Proof of Existence — Zero External Capital</div>
+        <div class="roadmap-items">
+          <span class="roadmap-tag">Whitepaper v1 published</span>
+          <span class="roadmap-tag">Website + brand live</span>
+          <span class="roadmap-tag">Pre-Lab apps launched</span>
+          <span class="roadmap-tag">Vision AI Playground</span>
+          <span class="roadmap-tag">Brain Architecture Visualizer</span>
+          <span class="roadmap-tag">Muscle Fiber Simulator</span>
+          <span class="roadmap-tag">Community: X / Discord / newsletter</span>
+          <span class="roadmap-tag">Grant applications: NCBiR / EIC</span>
+          <span class="roadmap-tag">Company formation</span>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-phase">Phase 1 · Q2–Q3 2026 · Private Round</div>
+        <div class="roadmap-title">Capital Formation — Private Sale</div>
+        <div class="roadmap-items">
+          <span class="roadmap-tag">Private sale: 7% tokens @ 40% discount</span>
+          <span class="roadmap-tag">Smart contracts on testnet</span>
+          <span class="roadmap-tag">Muscle system prototype v1</span>
+          <span class="roadmap-tag">First RL motor model</span>
+          <span class="roadmap-tag">GPU infrastructure (Vast.ai / Akash)</span>
+          <span class="roadmap-tag">Smart contract audit commissioned</span>
+          <span class="roadmap-tag">KOL partnerships initiated</span>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-phase">Phase 2 · Q3–Q4 2026 · Public IDO</div>
+        <div class="roadmap-title">Launch — Token & Laboratory</div>
+        <div class="roadmap-items">
+          <span class="roadmap-tag">Public IDO: target $800,000</span>
+          <span class="roadmap-tag">DEX listing</span>
+          <span class="roadmap-tag">Virtual Lab beta</span>
+          <span class="roadmap-tag">Compute marketplace alpha</span>
+          <span class="roadmap-tag">DAO governance live</span>
+          <span class="roadmap-tag">Developer SDK v0.1</span>
+          <span class="roadmap-tag">Research grant program</span>
+          <span class="roadmap-tag">Token burn mechanism active</span>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-phase">Phase 3 · Q1–Q2 2027</div>
+        <div class="roadmap-title">Intelligence — Multi-Agent Brain</div>
+        <div class="roadmap-items">
+          <span class="roadmap-tag">Perception module v1</span>
+          <span class="roadmap-tag">Multi-agent brain integration</span>
+          <span class="roadmap-tag">Vision AI pipeline</span>
+          <span class="roadmap-tag">Simulation suite</span>
+          <span class="roadmap-tag">Muscle system v2</span>
+          <span class="roadmap-tag">Body–brain integration tests</span>
+          <span class="roadmap-tag">IP registration tools</span>
+          <span class="roadmap-tag">Series A preparation</span>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-phase">Phase 4 · H2 2027+</div>
+        <div class="roadmap-title">Embodiment — Full Humanoid Integration</div>
+        <div class="roadmap-items">
+          <span class="roadmap-tag">Full prototype assembly</span>
+          <span class="roadmap-tag">Body + Mind integration</span>
+          <span class="roadmap-tag">Autonomous navigation demo</span>
+          <span class="roadmap-tag">B2B licensing program</span>
+          <span class="roadmap-tag">Academic partnerships</span>
+          <span class="roadmap-tag">Series A raise</span>
+          <span class="roadmap-tag">Hardware licensing</span>
+          <span class="roadmap-tag">Protocol v2 roadmap</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 TEAM -->
+  <section class="section" id="team">
+    <div class="section-id">10 · Team</div>
+    <h2 class="section-title">The <span class="accent2">Builder</span></h2>
+    <div class="lead">
+      SYNAPEX was conceived and is being built by a rare intersection of disciplines —
+      a single founder who spans the full stack from electromagnetic hardware to blockchain infrastructure.
+    </div>
+
+    <div class="team-card">
+      <div class="team-avatar">F</div>
+      <div class="team-body">
+        <div class="team-name">Founder &amp; Chief Architect</div>
+        <div class="team-role">AI · Hardware · Blockchain · Full Stack</div>
+        <div class="skill-tags">
+          <span class="skill-tag">AI/ML Certified Expert</span>
+          <span class="skill-tag">PyTorch</span>
+          <span class="skill-tag">TensorFlow</span>
+          <span class="skill-tag">Keras</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">TypeScript</span>
+          <span class="skill-tag">Solidity</span>
+          <span class="skill-tag">Mechanical Engineering</span>
+          <span class="skill-tag">Electronics Engineering</span>
+        </div>
+        <p class="team-bio">
+          A certified AI/ML expert and qualified mechanical and electronics engineer, the SYNAPEX founder
+          brings an unusually complete skill set to the problem of embodied intelligence.
+          With hands-on expertise spanning neural network architecture, smart contract development,
+          physical hardware design, and quantitative financial analysis,
+          the foundation combines the theoretical depth of a researcher with the practical
+          capabilities of a full-stack engineer and the market understanding of a financial analyst.
+          The SYNAPEX artificial muscle system and multi-agent brain architecture are original
+          inventions, developed through years of independent research and prototyping.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout callout-teal">
+      <strong>Team Expansion</strong>
+      <p>SYNAPEX is actively seeking co-founders and early team members in: GPU infrastructure &amp; distributed systems,
+      reinforcement learning research, front-end and developer experience, and legal / regulatory compliance (MiCA, EU).
+      Compensation includes equity-equivalent token allocation with standard vesting schedules.
+      Contact: <em><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7a0e1f1b173a0903141b0a1f020a08150e15191516541315">[email&#160;protected]</a></em></p>
+    </div>
+  </section>
+
+  <!-- 11 LEGAL -->
+  <section class="section" id="legal">
+    <div class="section-id">11 · Legal</div>
+    <h2 class="section-title">Legal <span class="accent3">Disclaimer</span></h2>
+
+    <div class="disclaimer">
+      <div class="disclaimer-title">Important Notice — Please Read Carefully</div>
+      <p>This document is a draft whitepaper provided for informational purposes only. It does not constitute
+      an offer or solicitation to buy or sell any security, financial instrument, or digital asset in any
+      jurisdiction where such an offer or solicitation would be unlawful.</p>
+      <p>$SYNX tokens are utility tokens designed to provide access to the SYNAPEX Protocol's computational
+      infrastructure, models, and governance systems. They are not investment contracts, securities, or
+      financial instruments. Purchasing $SYNX does not entitle the holder to equity, dividends, profit sharing,
+      or any other financial return.</p>
+      <p>Participation in the $SYNX token sale involves significant risks, including but not limited to:
+      regulatory uncertainty, technological risk, market volatility, and the risk of total loss of contributed
+      capital. Participants should carefully assess their risk tolerance and seek independent financial and legal
+      advice before participating.</p>
+      <p>The SYNAPEX Protocol is subject to European Union regulations including the Markets in Crypto-Assets
+      Regulation (MiCA). Full regulatory compliance documentation will be published prior to any public token offering.</p>
+      <p>All technical specifications described in this document, particularly those relating to the
+      proprietary actuation system, are protected intellectual property. Reproduction, disclosure, or
+      use of this information without written authorisation is prohibited.</p>
+      <p>This document may be updated. The version number and date on the cover page indicate the
+      current revision. Always refer to the most recent published version at <em>synapexprotocol.io</em>.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <p style="text-align:center; font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">
+      SYNAPEX PROTOCOL · Whitepaper v1.0 · 2026<br/>
+      synapexprotocol.io · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="93f0fcfde7f2f0e7d3e0eafdf2e3f6ebe3e1fce7fcf0fcffbdfafc">[email&#160;protected]</a><br/><br/>
+      <em style="font-family:'Crimson Pro',serif; font-size:14px; color:var(--muted);">
+        "The question is not whether machines can think. The question is whether they can exist."
+      </em>
+    </p>
+  </section>
+
+</main>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Active nav link on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => link.classList.remove('active'));
+      const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -70% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// Mobile hamburger
+const toggle = document.getElementById('navToggle');
+const sidebar = document.querySelector('.sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+
+function openNav() {
+  sidebar.classList.add('open');
+  overlay.classList.add('visible');
+  toggle.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeNav() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('visible');
+  toggle.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+toggle.addEventListener('click', () => {
+  sidebar.classList.contains('open') ? closeNav() : openNav();
+});
+overlay.addEventListener('click', closeNav);
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 768) closeNav();
+  });
+});
+</script>
+</body>
+</html>
