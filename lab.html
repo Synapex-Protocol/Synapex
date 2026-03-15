@@ -205,6 +205,61 @@
   </div>
 </section>
 
+<!-- LAB TOOLS -->
+<section class="section" id="labTools" style="border-top:1px solid var(--border);background:linear-gradient(180deg,transparent,rgba(0,212,168,0.01),transparent);">
+  <div class="section-header center reveal">
+    <div class="section-label">Laboratorium</div>
+    <h2 class="section-title">SYNAPEX <span class="accent2">Tools</span></h2>
+    <p class="section-desc">
+      Interactive research utilities built by the SYNAPEX team. Select a tool to launch it directly in your browser.
+    </p>
+  </div>
+
+  <div class="tools-grid stagger">
+    <div class="tool-card reveal" data-tool="palette">
+      <span class="tool-card-icon">&#127912;</span>
+      <div class="tool-card-name">Color Palette</div>
+      <div class="tool-card-desc">Generate & export palettes</div>
+    </div>
+    <div class="tool-card reveal" data-tool="json">
+      <span class="tool-card-icon">&#128196;</span>
+      <div class="tool-card-name">JSON Formatter</div>
+      <div class="tool-card-desc">Format & validate JSON</div>
+    </div>
+    <div class="tool-card reveal" data-tool="base64">
+      <span class="tool-card-icon">&#128274;</span>
+      <div class="tool-card-name">Base64</div>
+      <div class="tool-card-desc">Encode & decode text</div>
+    </div>
+    <div class="tool-card reveal" data-tool="textanalyzer">
+      <span class="tool-card-icon">&#128209;</span>
+      <div class="tool-card-name">Text Analyzer</div>
+      <div class="tool-card-desc">Words, chars & stats</div>
+    </div>
+    <div class="tool-card reveal" data-tool="timer">
+      <span class="tool-card-icon">&#9201;</span>
+      <div class="tool-card-name">Stopwatch</div>
+      <div class="tool-card-desc">Precision timer</div>
+    </div>
+    <div class="tool-card reveal" data-tool="password">
+      <span class="tool-card-icon">&#128272;</span>
+      <div class="tool-card-name">Password Gen</div>
+      <div class="tool-card-desc">Secure password creator</div>
+    </div>
+  </div>
+
+  <div class="tool-workspace" id="toolWorkspace">
+    <div class="tool-header">
+      <div class="tool-header-left">
+        <span class="tool-header-icon" id="toolIcon"></span>
+        <span class="tool-header-title" id="toolTitle"></span>
+      </div>
+      <button class="tool-close-btn" id="toolCloseBtn">&#10005; Close</button>
+    </div>
+    <div class="tool-body" id="toolBody"></div>
+  </div>
+</section>
+
 <!-- CONSOLE / WORKFLOW PREVIEW -->
 <section class="section">
   <div class="section-header reveal">
@@ -322,5 +377,6 @@
 </footer>
 
 <script src="js/main.js"></script>
+<script src="js/lab-tools.js"></script>
 </body>
 </html>
