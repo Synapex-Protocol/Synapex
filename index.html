@@ -1,0 +1,2744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNAPEX PROTOCOL — Autonomous Embodied Intelligence</title>
+<meta name="description" content="A decentralized compute economy funding the development of autonomous embodied intelligence — where biology, artificial neural networks and blockchain converge.">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #04060f;
+  --surface: #080d1c;
+  --surface2: #0c1226;
+  --border: rgba(80,140,255,0.1);
+  --border2: rgba(80,140,255,0.2);
+  --accent: #4a8cff;
+  --accent2: #00d4a8;
+  --accent3: #ff5577;
+  --gold: #e8c87a;
+  --purple: #c084fc;
+  --text: #dce8ff;
+  --body: #9aaec8;
+  --muted: #4a5c7a;
+  --grid: rgba(74,140,255,0.03);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Crimson Pro', serif;
+  font-size: 17px;
+  line-height: 1.8;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ============================================ */
+/* GRID BACKGROUND                              */
+/* ============================================ */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================ */
+/* PARTICLE CANVAS                              */
+/* ============================================ */
+#particles-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ============================================ */
+/* CURSOR GLOW                                  */
+/* ============================================ */
+.cursor-glow {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,140,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+.cursor-glow.active { opacity: 1; }
+
+/* ============================================ */
+/* NAVIGATION                                   */
+/* ============================================ */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 0 48px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(4,6,15,0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.4s ease;
+}
+
+.nav.scrolled {
+  background: rgba(4,6,15,0.92);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.nav-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-logo::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 7px;
+  background: var(--bg);
+}
+
+.nav-logo span {
+  position: relative;
+  z-index: 2;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  color: #fff;
+}
+
+.nav-brand-text {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  background: linear-gradient(135deg, #fff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1.5px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--accent);
+  background: rgba(74,140,255,0.08);
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: all 0.3s;
+  transform: translateX(-50%);
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 60%;
+}
+
+.nav-cta {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+  padding: 10px 22px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s !important;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(74,140,255,0.3);
+}
+
+.nav-cta::after { display: none !important; }
+
+.mobile-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 8px;
+}
+
+.mobile-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  transition: all 0.3s;
+}
+
+/* ============================================ */
+/* HERO SECTION                                 */
+/* ============================================ */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+  animation: orbFloat 12s ease-in-out infinite;
+}
+
+.hero-orb-1 {
+  width: 500px;
+  height: 500px;
+  background: rgba(74,140,255,0.08);
+  top: 10%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.hero-orb-2 {
+  width: 400px;
+  height: 400px;
+  background: rgba(0,212,168,0.06);
+  bottom: 10%;
+  right: -5%;
+  animation-delay: -4s;
+}
+
+.hero-orb-3 {
+  width: 300px;
+  height: 300px;
+  background: rgba(192,132,252,0.05);
+  top: 30%;
+  right: 20%;
+  animation-delay: -8s;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.05); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(10px, 30px) scale(1.02); }
+}
+
+.hero-rings {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hero-ring:nth-child(1) {
+  width: 300px; height: 300px;
+  border-color: rgba(74,140,255,0.08);
+  animation: ringPulse 4s ease-in-out infinite;
+}
+
+.hero-ring:nth-child(2) {
+  width: 420px; height: 420px;
+  border-color: rgba(0,212,168,0.06);
+  animation: ringPulse 4s 0.5s ease-in-out infinite;
+}
+
+.hero-ring:nth-child(3) {
+  width: 540px; height: 540px;
+  border-color: rgba(192,132,252,0.04);
+  animation: ringPulse 4s 1s ease-in-out infinite;
+}
+
+@keyframes ringPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.06); opacity: 0.5; }
+}
+
+.hero-rotating-ring {
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: rotate 30s linear infinite;
+}
+
+.hero-rotating-ring::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translateX(-50%);
+  box-shadow: 0 0 15px var(--accent);
+}
+
+.hero-rotating-ring::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent2);
+  transform: translateX(-50%);
+  box-shadow: 0 0 15px var(--accent2);
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.hero-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s ease forwards;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -2px;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s ease forwards;
+}
+
+.hero-title .line1 {
+  display: block;
+  color: #fff;
+}
+
+.hero-title .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 20px;
+  color: var(--body);
+  max-width: 640px;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 48px;
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s ease forwards;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s ease forwards;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 14px 32px;
+  border-radius: 10px;
+  transition: all 0.3s;
+  cursor: pointer;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn:hover::before { opacity: 1; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(74,140,255,0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(74,140,255,0.35);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--border2);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(74,140,255,0.1);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 48px;
+  margin-top: 80px;
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeUp 0.8s 1s ease forwards;
+}
+
+.hero-stat {
+  text-align: center;
+}
+
+.hero-stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.hero-stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  animation: fadeUp 0.8s 1.2s ease forwards;
+}
+
+.scroll-indicator span {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--accent), transparent);
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(10px); opacity: 0.3; }
+}
+
+/* ============================================ */
+/* SECTION COMMON                               */
+/* ============================================ */
+.section {
+  position: relative;
+  z-index: 2;
+  padding: 120px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 72px;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.section-label::before,
+.section-label::after {
+  content: '';
+  width: 40px;
+  height: 1px;
+  background: var(--border2);
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin-bottom: 20px;
+}
+
+.section-title .accent { color: var(--accent); }
+.section-title .accent2 { color: var(--accent2); }
+.section-title .accent3 { color: var(--accent3); }
+.section-title .gold { color: var(--gold); }
+.section-title .purple { color: var(--purple); }
+
+.section-desc {
+  font-size: 18px;
+  color: var(--body);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ============================================ */
+/* REVEAL ANIMATIONS                            */
+/* ============================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(60px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.85);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger children */
+.stagger-children .reveal:nth-child(1) { transition-delay: 0s; }
+.stagger-children .reveal:nth-child(2) { transition-delay: 0.1s; }
+.stagger-children .reveal:nth-child(3) { transition-delay: 0.2s; }
+.stagger-children .reveal:nth-child(4) { transition-delay: 0.3s; }
+.stagger-children .reveal:nth-child(5) { transition-delay: 0.4s; }
+.stagger-children .reveal:nth-child(6) { transition-delay: 0.5s; }
+
+/* ============================================ */
+/* ABOUT / PROBLEM SECTION                      */
+/* ============================================ */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.about-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 28px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.about-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.about-card:hover::before { opacity: 1; }
+
+.about-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 40px rgba(74,140,255,0.08);
+}
+
+.about-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.about-card-icon.blue { background: rgba(74,140,255,0.1); border: 1px solid rgba(74,140,255,0.2); }
+.about-card-icon.teal { background: rgba(0,212,168,0.1); border: 1px solid rgba(0,212,168,0.2); }
+.about-card-icon.red { background: rgba(255,85,119,0.1); border: 1px solid rgba(255,85,119,0.2); }
+
+.about-card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.about-card-text {
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.7;
+}
+
+/* ============================================ */
+/* TECHNOLOGY SECTION                           */
+/* ============================================ */
+.tech-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  margin: 80px 0;
+}
+
+.tech-split.reverse { direction: rtl; }
+.tech-split.reverse > * { direction: ltr; }
+
+.tech-content h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 16px;
+  letter-spacing: -0.3px;
+}
+
+.tech-content h3 .accent { color: var(--accent); }
+.tech-content h3 .accent2 { color: var(--accent2); }
+.tech-content h3 .purple { color: var(--purple); }
+
+.tech-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(74,140,255,0.08);
+  border: 1px solid rgba(74,140,255,0.15);
+  padding: 5px 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.tech-badge.teal {
+  color: var(--accent2);
+  background: rgba(0,212,168,0.08);
+  border-color: rgba(0,212,168,0.15);
+}
+
+.tech-badge.purple {
+  color: var(--purple);
+  background: rgba(192,132,252,0.08);
+  border-color: rgba(192,132,252,0.15);
+}
+
+.tech-content p {
+  font-size: 16px;
+  color: var(--body);
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
+
+.tech-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.tech-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--body);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.tech-tag:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.tech-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+}
+
+.tech-visual-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.tech-visual-card::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,140,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Animated DNA helix for Body section */
+.dna-helix {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+}
+
+.dna-strand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: dnaWave 3s ease-in-out infinite;
+}
+
+.dna-strand:nth-child(even) { animation-direction: reverse; }
+.dna-strand:nth-child(1) { animation-delay: 0s; }
+.dna-strand:nth-child(2) { animation-delay: 0.15s; }
+.dna-strand:nth-child(3) { animation-delay: 0.3s; }
+.dna-strand:nth-child(4) { animation-delay: 0.45s; }
+.dna-strand:nth-child(5) { animation-delay: 0.6s; }
+.dna-strand:nth-child(6) { animation-delay: 0.75s; }
+.dna-strand:nth-child(7) { animation-delay: 0.9s; }
+.dna-strand:nth-child(8) { animation-delay: 1.05s; }
+
+@keyframes dnaWave {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.3); }
+}
+
+.dna-node {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.dna-bridge {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  opacity: 0.4;
+}
+
+.dna-node-right {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent2);
+  box-shadow: 0 0 8px var(--accent2);
+}
+
+/* Neural network animation */
+.neural-net {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+/* ============================================ */
+/* FEATURES GRID                                */
+/* ============================================ */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 24px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(74,140,255,0.03), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.feature-card:hover::after { opacity: 1; }
+
+.feature-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+
+.feature-icon {
+  font-size: 28px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.feature-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.feature-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* ============================================ */
+/* LAB / APP SECTION                            */
+/* ============================================ */
+.lab-section {
+  background: linear-gradient(180deg, transparent, rgba(74,140,255,0.02), transparent);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.lab-apps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.lab-app-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.lab-app-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+}
+
+.lab-app-preview {
+  height: 200px;
+  background: var(--surface2);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lab-app-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(74,140,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,140,255,0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.lab-app-icon {
+  font-size: 48px;
+  position: relative;
+  z-index: 2;
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.lab-app-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  z-index: 2;
+}
+
+.lab-app-status.live {
+  background: rgba(0,212,168,0.15);
+  color: var(--accent2);
+  border: 1px solid rgba(0,212,168,0.3);
+}
+
+.lab-app-status.coming {
+  background: rgba(74,140,255,0.15);
+  color: var(--accent);
+  border: 1px solid rgba(74,140,255,0.3);
+}
+
+.lab-app-status.dev {
+  background: rgba(232,200,122,0.15);
+  color: var(--gold);
+  border: 1px solid rgba(232,200,122,0.3);
+}
+
+.lab-app-body {
+  padding: 24px;
+}
+
+.lab-app-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.lab-app-desc {
+  font-size: 14px;
+  color: var(--body);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.lab-app-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lab-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  background: rgba(74,140,255,0.05);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+
+/* ============================================ */
+/* TOKENOMICS SECTION                           */
+/* ============================================ */
+.token-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 48px 0;
+}
+
+.token-stat {
+  background: var(--surface);
+  padding: 28px 20px;
+  text-align: center;
+  transition: background 0.3s;
+}
+
+.token-stat:hover {
+  background: var(--surface2);
+}
+
+.token-stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.token-stat-value.blue { color: var(--accent); }
+.token-stat-value.teal { color: var(--accent2); }
+.token-stat-value.gold { color: var(--gold); }
+
+.token-stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.alloc-section {
+  margin: 48px 0;
+}
+
+.alloc-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+.alloc-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--body);
+  min-width: 200px;
+}
+
+.alloc-bar-wrap {
+  flex: 1;
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.alloc-bar {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  width: 0;
+  transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.alloc-bar.animated {
+  /* width set via data attribute */
+}
+
+.alloc-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  min-width: 45px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.token-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.token-feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  transition: all 0.3s;
+}
+
+.token-feature-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+
+.token-feature-icon {
+  font-size: 24px;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.token-feature-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.token-feature-text {
+  font-size: 14px;
+  color: var(--body);
+  line-height: 1.7;
+}
+
+/* ============================================ */
+/* ROADMAP SECTION                              */
+/* ============================================ */
+.roadmap-timeline {
+  position: relative;
+  padding: 48px 0;
+}
+
+.roadmap-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--gold), var(--accent3), var(--purple));
+  transform: translateX(-50%);
+}
+
+.roadmap-line-glow {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 6px;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--accent), transparent);
+  transform: translateX(-50%);
+  animation: lineGlow 4s ease-in-out infinite;
+  border-radius: 3px;
+}
+
+@keyframes lineGlow {
+  0% { top: 0; }
+  100% { top: calc(100% - 60px); }
+}
+
+.roadmap-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 64px;
+  position: relative;
+}
+
+.roadmap-item:nth-child(odd) {
+  flex-direction: row;
+  padding-right: calc(50% + 40px);
+  text-align: right;
+}
+
+.roadmap-item:nth-child(even) {
+  flex-direction: row-reverse;
+  padding-left: calc(50% + 40px);
+  text-align: left;
+}
+
+.roadmap-dot {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid var(--bg);
+  z-index: 2;
+}
+
+.roadmap-item:nth-child(1) .roadmap-dot { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
+.roadmap-item:nth-child(2) .roadmap-dot { background: var(--accent2); box-shadow: 0 0 15px var(--accent2); }
+.roadmap-item:nth-child(3) .roadmap-dot { background: var(--gold); box-shadow: 0 0 15px var(--gold); }
+.roadmap-item:nth-child(4) .roadmap-dot { background: var(--accent3); box-shadow: 0 0 15px var(--accent3); }
+.roadmap-item:nth-child(5) .roadmap-dot { background: var(--purple); box-shadow: 0 0 15px var(--purple); }
+
+.roadmap-content {
+  flex: 1;
+}
+
+.roadmap-phase {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.roadmap-item:nth-child(1) .roadmap-phase { color: var(--accent); }
+.roadmap-item:nth-child(2) .roadmap-phase { color: var(--accent2); }
+.roadmap-item:nth-child(3) .roadmap-phase { color: var(--gold); }
+.roadmap-item:nth-child(4) .roadmap-phase { color: var(--accent3); }
+.roadmap-item:nth-child(5) .roadmap-phase { color: var(--purple); }
+
+.roadmap-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 14px;
+}
+
+.roadmap-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.roadmap-item:nth-child(odd) .roadmap-tags {
+  justify-content: flex-end;
+}
+
+.roadmap-tag {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--body);
+  transition: all 0.3s;
+}
+
+.roadmap-tag:hover {
+  border-color: var(--border2);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+/* ============================================ */
+/* TEAM SECTION                                 */
+/* ============================================ */
+.team-card {
+  max-width: 700px;
+  margin: 48px auto 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  transition: all 0.4s;
+}
+
+.team-card:hover {
+  border-color: var(--border2);
+  box-shadow: 0 12px 48px rgba(74,140,255,0.06);
+}
+
+.team-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.team-avatar::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(74,140,255,0.2);
+  animation: avatarPulse 3s ease-in-out infinite;
+}
+
+@keyframes avatarPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+.team-body { flex: 1; }
+
+.team-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.team-role {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.skill-tag {
+  background: rgba(74,140,255,0.08);
+  border: 1px solid rgba(74,140,255,0.2);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  transition: all 0.3s;
+}
+
+.skill-tag:hover {
+  background: rgba(74,140,255,0.15);
+  transform: translateY(-1px);
+}
+
+.team-bio {
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.team-cta {
+  max-width: 700px;
+  margin: 24px auto 0;
+  background: rgba(0,212,168,0.05);
+  border: 1px solid rgba(0,212,168,0.15);
+  border-radius: 14px;
+  padding: 28px 32px;
+  text-align: center;
+}
+
+.team-cta p {
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.team-cta strong {
+  color: var(--accent2);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* ============================================ */
+/* CTA SECTION                                  */
+/* ============================================ */
+.cta-section {
+  text-align: center;
+  padding: 120px 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,140,255,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cta-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 20px;
+  line-height: 1.1;
+}
+
+.cta-subtitle {
+  font-size: 18px;
+  color: var(--body);
+  font-style: italic;
+  max-width: 500px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ============================================ */
+/* FOOTER                                       */
+/* ============================================ */
+.footer {
+  position: relative;
+  z-index: 2;
+  border-top: 1px solid var(--border);
+  padding: 48px 24px;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-brand-text {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  background: linear-gradient(135deg, #fff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+
+.footer-links a {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover { color: var(--accent); }
+
+.footer-copy {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.footer-quote {
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-quote em {
+  font-family: 'Crimson Pro', serif;
+  font-size: 15px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ============================================ */
+/* FLOATING ELEMENTS                            */
+/* ============================================ */
+.float-element {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.03;
+}
+
+.float-hex {
+  width: 120px;
+  height: 120px;
+  border: 1px solid var(--accent);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: floatHex 20s ease-in-out infinite;
+}
+
+@keyframes floatHex {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(20px, -30px) rotate(90deg); }
+  50% { transform: translate(-10px, 20px) rotate(180deg); }
+  75% { transform: translate(15px, 10px) rotate(270deg); }
+}
+
+/* ============================================ */
+/* NUMBER COUNTER ANIMATION                     */
+/* ============================================ */
+.count-up {
+  display: inline-block;
+}
+
+/* ============================================ */
+/* GLITCH TEXT EFFECT                            */
+/* ============================================ */
+.glitch {
+  position: relative;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+.glitch:hover::before {
+  animation: glitch1 0.3s ease;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.glitch:hover::after {
+  animation: glitch2 0.3s ease;
+  color: var(--accent2);
+  opacity: 0.8;
+}
+
+@keyframes glitch1 {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(2px, -1px); }
+  60% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, 1px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes glitch2 {
+  0% { transform: translate(0); }
+  20% { transform: translate(2px, -2px); }
+  40% { transform: translate(-2px, 1px); }
+  60% { transform: translate(1px, 2px); }
+  80% { transform: translate(-1px, -1px); }
+  100% { transform: translate(0); }
+}
+
+/* ============================================ */
+/* TYPING EFFECT                                */
+/* ============================================ */
+.typing-text {
+  display: inline;
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--accent);
+  margin-left: 2px;
+  animation: blink 0.8s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+@media (max-width: 1024px) {
+  .about-grid { grid-template-columns: 1fr 1fr; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .lab-apps { grid-template-columns: 1fr 1fr; }
+  .tech-split { gap: 40px; }
+  .token-features { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .mobile-toggle { display: flex; }
+
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 72px;
+    left: 0;
+    right: 0;
+    background: rgba(4,6,15,0.95);
+    backdrop-filter: blur(20px);
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 4px;
+    z-index: 999;
+  }
+
+  .hero-title { letter-spacing: -1px; }
+  .hero-stats { gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .hero-rings, .hero-rotating-ring { display: none; }
+
+  .about-grid,
+  .features-grid,
+  .lab-apps { grid-template-columns: 1fr; }
+
+  .tech-split,
+  .tech-split.reverse { grid-template-columns: 1fr; direction: ltr; }
+  .tech-split.reverse > * { direction: ltr; }
+
+  .token-stats { grid-template-columns: 1fr 1fr; }
+
+  .roadmap-line,
+  .roadmap-line-glow { left: 20px; }
+
+  .roadmap-item:nth-child(odd),
+  .roadmap-item:nth-child(even) {
+    flex-direction: row;
+    padding-left: 52px;
+    padding-right: 0;
+    text-align: left;
+  }
+
+  .roadmap-item:nth-child(odd) .roadmap-tags {
+    justify-content: flex-start;
+  }
+
+  .roadmap-dot {
+    left: 20px;
+  }
+
+  .team-card { flex-direction: column; padding: 28px; }
+
+  .alloc-label { min-width: 140px; font-size: 10px; }
+
+  .footer-inner { flex-direction: column; text-align: center; }
+  .footer-links { flex-wrap: wrap; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .hero { padding: 100px 16px 60px; }
+  .section { padding: 80px 16px; }
+  .token-stats { grid-template-columns: 1fr; }
+  .hero-actions { flex-direction: column; }
+  .alloc-label { min-width: 100px; }
+  .btn { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<canvas id="particles-canvas"></canvas>
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- FLOATING ELEMENTS -->
+<div class="float-element" style="top:20%;left:5%;">
+  <div class="float-hex"></div>
+</div>
+<div class="float-element" style="top:60%;right:8%;">
+  <div class="float-hex" style="width:80px;height:80px;border-color:var(--accent2);animation-delay:-5s;animation-duration:25s;"></div>
+</div>
+<div class="float-element" style="top:40%;left:80%;">
+  <div class="float-hex" style="width:60px;height:60px;border-color:var(--purple);animation-delay:-10s;animation-duration:18s;"></div>
+</div>
+
+<!-- ============================================ -->
+<!-- NAVIGATION                                   -->
+<!-- ============================================ -->
+<nav class="nav" id="mainNav">
+  <a href="#hero" class="nav-brand">
+    <div class="nav-logo"><span>S</span></div>
+    <span class="nav-brand-text">SYNAPEX</span>
+  </a>
+
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">About</a></li>
+    <li><a href="#technology">Technology</a></li>
+    <li><a href="#lab">Laboratory</a></li>
+    <li><a href="#tokenomics">Tokenomics</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="whitepaper 2.html" class="nav-cta">Whitepaper</a></li>
+  </ul>
+
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ============================================ -->
+<!-- HERO SECTION                                 -->
+<!-- ============================================ -->
+<section class="hero" id="hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+
+  <div class="hero-rings">
+    <div class="hero-ring"></div>
+    <div class="hero-ring"></div>
+    <div class="hero-ring"></div>
+  </div>
+  <div class="hero-rotating-ring"></div>
+
+  <div class="hero-label">
+    <span class="typing-text" id="heroLabel"></span><span class="typing-cursor"></span>
+  </div>
+
+  <h1 class="hero-title glitch" data-text="SYNAPEX PROTOCOL">
+    <span class="line1">SYNAPEX</span>
+    <span class="line2">PROTOCOL</span>
+  </h1>
+
+  <p class="hero-subtitle">
+    A decentralized compute economy funding the development of autonomous embodied intelligence &mdash;
+    where biology, artificial neural networks and blockchain converge.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#lab" class="btn btn-primary">Explore the Lab</a>
+    <a href="whitepaper 2.html" class="btn btn-secondary">Read Whitepaper</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-value blue">$SYNX</div>
+      <div class="hero-stat-label">Native Token</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-value teal" style="color:var(--accent2)">DAO</div>
+      <div class="hero-stat-label">Governance</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-value" style="color:var(--gold)">EVM</div>
+      <div class="hero-stat-label">Compatible</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-value" style="color:var(--purple)">AI+Bio</div>
+      <div class="hero-stat-label">Embodied Intelligence</div>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>Scroll to explore</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- ABOUT SECTION                                -->
+<!-- ============================================ -->
+<section class="section" id="about">
+  <div class="section-header reveal">
+    <div class="section-label">The Challenge</div>
+    <h2 class="section-title">Three Gaps. <span class="accent">One Solution.</span></h2>
+    <p class="section-desc">
+      The robotics and AI industries are converging on a critical inflection point &mdash;
+      yet the most fundamental questions remain unsolved.
+    </p>
+  </div>
+
+  <div class="about-grid stagger-children">
+    <div class="about-card reveal">
+      <div class="about-card-icon blue">&#9889;</div>
+      <div class="about-card-title">The Hardware Gap</div>
+      <div class="about-card-text">
+        Current humanoid robots are built on fundamentally mechanical architectures. Rigid actuators
+        and pre-programmed joint sequences produce motion that is recognizably artificial. Biology
+        solved this problem billions of years ago.
+      </div>
+    </div>
+
+    <div class="about-card reveal">
+      <div class="about-card-icon teal">&#129504;</div>
+      <div class="about-card-title">The AI Architecture Gap</div>
+      <div class="about-card-text">
+        Contemporary AI systems are architecturally monolithic &mdash; a single model for everything.
+        Biological minds are ecosystems of competing and cooperating processes, producing resilient
+        and genuinely autonomous behaviour.
+      </div>
+    </div>
+
+    <div class="about-card reveal">
+      <div class="about-card-icon red">&#128176;</div>
+      <div class="about-card-title">The Funding Gap</div>
+      <div class="about-card-text">
+        Breakthrough research requires capital out of reach for independent innovators.
+        Venture capital flows toward near-term commercial applications. Radical ideas are
+        systematically underfunded or abandoned entirely.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- TECHNOLOGY SECTION                           -->
+<!-- ============================================ -->
+<section class="section" id="technology">
+  <div class="section-header reveal">
+    <div class="section-label">Core Technology</div>
+    <h2 class="section-title">Two Breakthroughs. <span class="accent2">One Protocol.</span></h2>
+    <p class="section-desc">
+      Intelligence without a body is computation. Intelligence with a body is existence.
+      We are building the bridge between the two.
+    </p>
+  </div>
+
+  <!-- BODY TECH -->
+  <div class="tech-split">
+    <div class="tech-content reveal-left">
+      <div class="tech-badge">Technology I &middot; The Body</div>
+      <h3>Embodied Intelligence: <span class="accent">Artificial Muscle</span></h3>
+      <p>
+        A proprietary actuation technology that replicates the hierarchical organisation of
+        biological muscle at the engineering level. Individual electromagnetic actuation units
+        organised into fiber bundles &mdash; mirroring the topology of biological skeletal muscle.
+      </p>
+      <p>
+        The hardware is RL-native: activation signals whose physical consequences must be learned,
+        not programmed. The neural network discovers optimal contraction patterns through
+        reinforcement learning.
+      </p>
+      <div class="tech-features">
+        <span class="tech-tag">Hierarchical Force Scaling</span>
+        <span class="tech-tag">Continuous Force Gradation</span>
+        <span class="tech-tag">Proprioceptive Feedback</span>
+        <span class="tech-tag">RL-Native Interface</span>
+        <span class="tech-tag">Bio-Inspired Architecture</span>
+      </div>
+    </div>
+    <div class="tech-visual reveal-right">
+      <div class="tech-visual-card">
+        <div style="text-align:center;margin-bottom:16px;">
+          <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);opacity:0.7;">FIBER BUNDLE ARRAY</span>
+        </div>
+        <div class="dna-helix">
+          <div class="dna-strand"><div class="dna-node"></div><div class="dna-bridge"></div><div class="dna-node-right"></div></div>
+          <div class="dna-strand"><div class="dna-node"></div><div class="dna-bridge"></div><div class="dna-node-right"></div></div>
+          <div class="dna-strand"><div class="dna-node"></div><div class="dna-bridge"></div><div class="dna-node-right"></div></div>
+          <div class="dna-strand"><div class="dna-node"></div><div class="dna-bridge"></div><div class="dna-node-right"></div></div>
+          <div class="dna-strand"><div class="dna-node"></div><div class="dna-bridge"></div><div class="dna-node-right"></div></div>
+          <div class="dna-strand"><div class="dna-node"></div><div class="dna-bridge"></div><div class="dna-node-right"></div></div>
+          <div class="dna-strand"><div class="dna-node"></div><div class="dna-bridge"></div><div class="dna-node-right"></div></div>
+          <div class="dna-strand"><div class="dna-node"></div><div class="dna-bridge"></div><div class="dna-node-right"></div></div>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+          <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">Activation is learned, not programmed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BRAIN TECH -->
+  <div class="tech-split reverse">
+    <div class="tech-content reveal-right">
+      <div class="tech-badge teal">Technology II &middot; The Mind</div>
+      <h3>Autonomous AI Brain: <span class="accent2">Predator-Prey Architecture</span></h3>
+      <p>
+        A novel multi-agent brain architecture inspired by ecological dynamics. No single model
+        holds control. Decisions emerge from the interaction of specialised, interdependent modules
+        &mdash; Perception, Attention, Reasoning, Conflict Arbiter, Planning, and Motor Control.
+      </p>
+      <p>
+        Every apex predator is simultaneously prey to something. This mutual dependence produces
+        stability, resilience, and emergent complexity. Applied to AI, it creates inherently
+        robust and aligned intelligence.
+      </p>
+      <div class="tech-features">
+        <span class="tech-tag">Multi-Agent Architecture</span>
+        <span class="tech-tag">Conflict Arbitration</span>
+        <span class="tech-tag">Emergent Decisions</span>
+        <span class="tech-tag">Veto Safety System</span>
+        <span class="tech-tag">Ecological Dynamics</span>
+      </div>
+    </div>
+    <div class="tech-visual reveal-left">
+      <div class="tech-visual-card">
+        <canvas id="neuralCanvas" width="460" height="300" style="width:100%;height:auto;display:block;"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- VIRTUAL LAB SECTION                          -->
+<!-- ============================================ -->
+<section class="section lab-section" id="lab">
+  <div class="section-header reveal">
+    <div class="section-label">Virtual Research Laboratory</div>
+    <h2 class="section-title">Build the <span class="accent">Future.</span> <span class="accent2">Together.</span></h2>
+    <p class="section-desc">
+      An open, token-gated platform that democratises access to the tools of advanced
+      AI and robotics research. Not just a robot &mdash; the infrastructure for what comes next.
+    </p>
+  </div>
+
+  <div class="features-grid stagger-children">
+    <div class="feature-card reveal">
+      <span class="feature-icon">&#128421;</span>
+      <div class="feature-title">Compute Marketplace</div>
+      <div class="feature-text">Distributed GPU network accessible via $SYNX. Pay-as-you-go training, inference endpoints, and simulation environments.</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">&#128300;</span>
+      <div class="feature-title">Model Repository</div>
+      <div class="feature-text">Access SYNAPEX-trained models: vision systems, motor controllers, perception modules. Fine-tune on your own data.</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">&#127758;</span>
+      <div class="feature-title">Collaboration Network</div>
+      <div class="feature-text">Connect with inventors globally. Share datasets, co-author experiments, form teams. A living community.</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">&#128499;</span>
+      <div class="feature-title">Research DAO</div>
+      <div class="feature-text">Token holders vote on research priorities, resource allocation, and platform development.</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">&#128202;</span>
+      <div class="feature-title">Simulation Suite</div>
+      <div class="feature-text">Physics-accurate environments for training embodied AI. Sim-to-real transfer tools included.</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">&#128737;</span>
+      <div class="feature-title">IP Protection Tools</div>
+      <div class="feature-text">On-chain IP registration. Inventors retain ownership. Smart contract licensing for monetisation.</div>
+    </div>
+  </div>
+
+  <!-- LAB APPS -->
+  <div style="margin-top:80px;">
+    <div class="section-header reveal">
+      <div class="section-label">Pre-Lab Applications</div>
+      <h2 class="section-title">Interactive <span class="accent">Playground</span></h2>
+      <p class="section-desc">
+        Explore SYNAPEX technology hands-on. These applications demonstrate core concepts
+        and will evolve into the full Virtual Research Laboratory.
+      </p>
+    </div>
+
+    <div class="lab-apps stagger-children">
+      <div class="lab-app-card reveal">
+        <div class="lab-app-preview">
+          <span class="lab-app-status coming">Phase 0</span>
+          <span class="lab-app-icon">&#128065;</span>
+        </div>
+        <div class="lab-app-body">
+          <div class="lab-app-title">Vision AI Playground</div>
+          <div class="lab-app-desc">Interactive demo of the perception module. Upload images and see how the SYNAPEX vision system processes multi-modal input in real-time.</div>
+          <div class="lab-app-tags">
+            <span class="lab-tag">Computer Vision</span>
+            <span class="lab-tag">Real-time</span>
+            <span class="lab-tag">Multi-modal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-app-card reveal">
+        <div class="lab-app-preview" style="background: linear-gradient(135deg, var(--surface2), rgba(0,212,168,0.05));">
+          <span class="lab-app-status coming">Phase 0</span>
+          <span class="lab-app-icon">&#129504;</span>
+        </div>
+        <div class="lab-app-body">
+          <div class="lab-app-title">Brain Architecture Visualizer</div>
+          <div class="lab-app-desc">Watch the multi-agent brain architecture in action. See how modules interact, compete, and reach consensus in real-time simulations.</div>
+          <div class="lab-app-tags">
+            <span class="lab-tag">Multi-Agent AI</span>
+            <span class="lab-tag">Visualization</span>
+            <span class="lab-tag">Interactive</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-app-card reveal">
+        <div class="lab-app-preview" style="background: linear-gradient(135deg, var(--surface2), rgba(192,132,252,0.05));">
+          <span class="lab-app-status dev">In Development</span>
+          <span class="lab-app-icon">&#129470;</span>
+        </div>
+        <div class="lab-app-body">
+          <div class="lab-app-title">Muscle Fiber Simulator</div>
+          <div class="lab-app-desc">Simulate the SYNAPEX fiber bundle array. Adjust activation patterns and watch how hierarchical force emerges from collective behavior.</div>
+          <div class="lab-app-tags">
+            <span class="lab-tag">Physics Sim</span>
+            <span class="lab-tag">RL Control</span>
+            <span class="lab-tag">Bio-Inspired</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- TOKENOMICS SECTION                           -->
+<!-- ============================================ -->
+<section class="section" id="tokenomics">
+  <div class="section-header reveal">
+    <div class="section-label">Token Economy</div>
+    <h2 class="section-title">The <span class="accent">$SYNX</span> Token</h2>
+    <p class="section-desc">
+      Not a speculative asset. A claim on computational infrastructure &mdash;
+      the fuel that powers everything SYNAPEX builds.
+    </p>
+  </div>
+
+  <div class="token-stats reveal">
+    <div class="token-stat">
+      <div class="token-stat-value blue count-up" data-target="1000000000" data-prefix="" data-suffix="">1B</div>
+      <div class="token-stat-label">Total<br/>Supply</div>
+    </div>
+    <div class="token-stat">
+      <div class="token-stat-value teal">$0.004</div>
+      <div class="token-stat-label">IDO<br/>Price</div>
+    </div>
+    <div class="token-stat">
+      <div class="token-stat-value gold">$4M</div>
+      <div class="token-stat-label">Fully Diluted<br/>Valuation</div>
+    </div>
+    <div class="token-stat">
+      <div class="token-stat-value" style="color:var(--accent3)">5%</div>
+      <div class="token-stat-label">Fee<br/>Burn</div>
+    </div>
+  </div>
+
+  <div class="alloc-section reveal" id="allocSection">
+    <h3 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:24px;text-align:center;">Token Allocation</h3>
+    <div class="alloc-row"><span class="alloc-label">Public Sale / IDO</span><div class="alloc-bar-wrap"><div class="alloc-bar" data-width="20"></div></div><span class="alloc-pct">20%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Ecosystem &amp; Research</span><div class="alloc-bar-wrap"><div class="alloc-bar" data-width="20"></div></div><span class="alloc-pct">20%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Team &amp; Founders</span><div class="alloc-bar-wrap"><div class="alloc-bar" data-width="15"></div></div><span class="alloc-pct">15%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Foundation Reserve</span><div class="alloc-bar-wrap"><div class="alloc-bar" data-width="13"></div></div><span class="alloc-pct">13%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Liquidity (Total)</span><div class="alloc-bar-wrap"><div class="alloc-bar" data-width="15" style="background:linear-gradient(90deg,#00d4a8,#4a8cff)"></div></div><span class="alloc-pct" style="color:var(--accent2)">15%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Strategic Partners</span><div class="alloc-bar-wrap"><div class="alloc-bar" data-width="10"></div></div><span class="alloc-pct">10%</span></div>
+    <div class="alloc-row"><span class="alloc-label">Private Round</span><div class="alloc-bar-wrap"><div class="alloc-bar" data-width="7" style="background:linear-gradient(90deg,#e8c87a,#ff9a3d)"></div></div><span class="alloc-pct" style="color:var(--gold)">7%</span></div>
+  </div>
+
+  <div class="token-features stagger-children">
+    <div class="token-feature-card reveal">
+      <span class="token-feature-icon">&#9889;</span>
+      <div class="token-feature-title">Compute Access</div>
+      <div class="token-feature-text">$SYNX is the payment unit for GPU compute. One token represents a defined quantum of computational work, backed by real infrastructure.</div>
+    </div>
+    <div class="token-feature-card reveal">
+      <span class="token-feature-icon">&#129302;</span>
+      <div class="token-feature-title">Model Access</div>
+      <div class="token-feature-text">Access to SYNAPEX AI models &mdash; vision, motor controllers, multi-agent brain modules. Stake for sustained access; spend for inference.</div>
+    </div>
+    <div class="token-feature-card reveal">
+      <span class="token-feature-icon">&#128499;</span>
+      <div class="token-feature-title">Governance Rights</div>
+      <div class="token-feature-text">Vote on protocol upgrades, research budget allocation, and platform policy. Safeguards against plutocratic capture built in.</div>
+    </div>
+    <div class="token-feature-card reveal">
+      <span class="token-feature-icon">&#128293;</span>
+      <div class="token-feature-title">Deflationary Burn</div>
+      <div class="token-feature-text">5% of all platform fees permanently burned at the smart contract level. Growth and scarcity are structurally inseparable.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- ROADMAP SECTION                              -->
+<!-- ============================================ -->
+<section class="section" id="roadmap">
+  <div class="section-header reveal">
+    <div class="section-label">Development Roadmap</div>
+    <h2 class="section-title">Five Phases. <span class="gold">Real Milestones.</span></h2>
+    <p class="section-desc">
+      Each phase delivers standalone value and funds the next.
+    </p>
+  </div>
+
+  <div class="roadmap-timeline">
+    <div class="roadmap-line"></div>
+    <div class="roadmap-line-glow"></div>
+
+    <div class="roadmap-item reveal">
+      <div class="roadmap-dot"></div>
+      <div class="roadmap-content">
+        <div class="roadmap-phase">Phase 0 &middot; Now &mdash; Q2 2026 &middot; Bootstrap</div>
+        <div class="roadmap-title">Proof of Existence</div>
+        <div class="roadmap-tags">
+          <span class="roadmap-tag">Whitepaper v1</span>
+          <span class="roadmap-tag">Website + Brand</span>
+          <span class="roadmap-tag">Pre-Lab Apps</span>
+          <span class="roadmap-tag">Vision AI Playground</span>
+          <span class="roadmap-tag">Community Launch</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="roadmap-item reveal">
+      <div class="roadmap-dot"></div>
+      <div class="roadmap-content">
+        <div class="roadmap-phase">Phase 1 &middot; Q2&ndash;Q3 2026 &middot; Private Round</div>
+        <div class="roadmap-title">Capital Formation</div>
+        <div class="roadmap-tags">
+          <span class="roadmap-tag">Private Sale: 7% @ 40% Discount</span>
+          <span class="roadmap-tag">Smart Contracts Testnet</span>
+          <span class="roadmap-tag">Muscle Prototype v1</span>
+          <span class="roadmap-tag">First RL Motor Model</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="roadmap-item reveal">
+      <div class="roadmap-dot"></div>
+      <div class="roadmap-content">
+        <div class="roadmap-phase">Phase 2 &middot; Q3&ndash;Q4 2026 &middot; Public IDO</div>
+        <div class="roadmap-title">Launch &mdash; Token &amp; Laboratory</div>
+        <div class="roadmap-tags">
+          <span class="roadmap-tag">Public IDO: $800K Target</span>
+          <span class="roadmap-tag">DEX Listing</span>
+          <span class="roadmap-tag">Virtual Lab Beta</span>
+          <span class="roadmap-tag">DAO Governance Live</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="roadmap-item reveal">
+      <div class="roadmap-dot"></div>
+      <div class="roadmap-content">
+        <div class="roadmap-phase">Phase 3 &middot; Q1&ndash;Q2 2027</div>
+        <div class="roadmap-title">Intelligence &mdash; Multi-Agent Brain</div>
+        <div class="roadmap-tags">
+          <span class="roadmap-tag">Perception Module v1</span>
+          <span class="roadmap-tag">Brain Integration</span>
+          <span class="roadmap-tag">Simulation Suite</span>
+          <span class="roadmap-tag">Series A Prep</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="roadmap-item reveal">
+      <div class="roadmap-dot"></div>
+      <div class="roadmap-content">
+        <div class="roadmap-phase">Phase 4 &middot; H2 2027+</div>
+        <div class="roadmap-title">Embodiment &mdash; Full Humanoid</div>
+        <div class="roadmap-tags">
+          <span class="roadmap-tag">Full Prototype</span>
+          <span class="roadmap-tag">Body + Mind Integration</span>
+          <span class="roadmap-tag">Autonomous Demo</span>
+          <span class="roadmap-tag">Series A Raise</span>
+          <span class="roadmap-tag">B2B Licensing</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- TEAM SECTION                                 -->
+<!-- ============================================ -->
+<section class="section" id="team">
+  <div class="section-header reveal">
+    <div class="section-label">The Builder</div>
+    <h2 class="section-title">Founded by <span class="accent2">Conviction.</span></h2>
+    <p class="section-desc">
+      A rare intersection of disciplines &mdash; from electromagnetic hardware to blockchain infrastructure.
+    </p>
+  </div>
+
+  <div class="team-card reveal-scale">
+    <div class="team-avatar">F</div>
+    <div class="team-body">
+      <div class="team-name">Founder &amp; Chief Architect</div>
+      <div class="team-role">AI &middot; Hardware &middot; Blockchain &middot; Full Stack</div>
+      <div class="skill-tags">
+        <span class="skill-tag">AI/ML Certified Expert</span>
+        <span class="skill-tag">PyTorch</span>
+        <span class="skill-tag">TensorFlow</span>
+        <span class="skill-tag">Solidity</span>
+        <span class="skill-tag">Mechanical Eng.</span>
+        <span class="skill-tag">Electronics Eng.</span>
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">TypeScript</span>
+      </div>
+      <p class="team-bio">
+        A certified AI/ML expert and qualified mechanical and electronics engineer. Hands-on expertise
+        spanning neural network architecture, smart contract development, physical hardware design,
+        and quantitative financial analysis. The SYNAPEX artificial muscle system and multi-agent brain
+        architecture are original inventions, developed through years of independent research.
+      </p>
+    </div>
+  </div>
+
+  <div class="team-cta reveal">
+    <strong>Team Expansion &mdash; Join Us</strong>
+    <p>Actively seeking co-founders in GPU infrastructure, reinforcement learning,
+    developer experience, and legal/regulatory compliance (MiCA, EU).
+    Compensation includes equity-equivalent token allocation with standard vesting.</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- CTA SECTION                                  -->
+<!-- ============================================ -->
+<section class="cta-section reveal" id="join">
+  <h2 class="cta-title glitch" data-text="Join the Protocol.">Join the <span style="color:var(--accent)">Protocol.</span></h2>
+  <p class="cta-subtitle">
+    The question is not whether machines can think.
+    The question is whether they can exist.
+  </p>
+  <div class="cta-actions">
+    <a href="#lab" class="btn btn-primary">Explore the Lab</a>
+    <a href="whitepaper 2.html" class="btn btn-secondary">Read Whitepaper</a>
+    <a href="#tokenomics" class="btn btn-secondary" style="border-color:rgba(0,212,168,0.3);color:var(--accent2);">$SYNX Token</a>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- FOOTER                                       -->
+<!-- ============================================ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-brand-text">SYNAPEX PROTOCOL</span>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#technology">Technology</a></li>
+      <li><a href="#lab">Lab</a></li>
+      <li><a href="#tokenomics">Tokenomics</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="whitepaper 2.html">Whitepaper</a></li>
+    </ul>
+    <div class="footer-copy">v1.0 &middot; 2026 &middot; SYNAPEX</div>
+  </div>
+  <div class="footer-quote">
+    <em>&ldquo;The question is not whether machines can think. The question is whether they can exist.&rdquo;</em>
+  </div>
+</footer>
+
+<!-- ============================================ -->
+<!-- JAVASCRIPT                                   -->
+<!-- ============================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // ── PARTICLE SYSTEM ──
+  const canvas = document.getElementById('particles-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let mouse = { x: -1000, y: -1000 };
+  let animFrame;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 2 + 0.5;
+      this.speedX = (Math.random() - 0.5) * 0.4;
+      this.speedY = (Math.random() - 0.5) * 0.4;
+      this.opacity = Math.random() * 0.4 + 0.1;
+      this.color = Math.random() > 0.5 ? '74,140,255' : '0,212,168';
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+
+      const dx = mouse.x - this.x;
+      const dy = mouse.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 150) {
+        const force = (150 - dist) / 150;
+        this.x -= dx * force * 0.01;
+        this.y -= dy * force * 0.01;
+      }
+
+      if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+      if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${this.color},${this.opacity})`;
+      ctx.fill();
+    }
+  }
+
+  function initParticles() {
+    const count = Math.min(80, Math.floor((canvas.width * canvas.height) / 15000));
+    particles = [];
+    for (let i = 0; i < count; i++) {
+      particles.push(new Particle());
+    }
+  }
+
+  function drawConnections() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 120) {
+          const opacity = (1 - dist / 120) * 0.15;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(74,140,255,${opacity})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    drawConnections();
+    animFrame = requestAnimationFrame(animateParticles);
+  }
+
+  resizeCanvas();
+  initParticles();
+  animateParticles();
+
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    initParticles();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+
+  // ── CURSOR GLOW ──
+  const glow = document.getElementById('cursorGlow');
+  let glowActive = false;
+
+  document.addEventListener('mousemove', (e) => {
+    if (!glowActive) {
+      glow.classList.add('active');
+      glowActive = true;
+    }
+    glow.style.left = e.clientX + 'px';
+    glow.style.top = e.clientY + 'px';
+  });
+
+  document.addEventListener('mouseleave', () => {
+    glow.classList.remove('active');
+    glowActive = false;
+  });
+
+  // ── NAVIGATION ──
+  const nav = document.getElementById('mainNav');
+  const mobileToggle = document.getElementById('mobileToggle');
+  const navLinks = document.getElementById('navLinks');
+
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  mobileToggle.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
+
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+    });
+  });
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navAnchors = navLinks.querySelectorAll('a[href^="#"]');
+
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navAnchors.forEach(a => a.classList.remove('active'));
+        const active = navLinks.querySelector(`a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -60% 0px' });
+
+  sections.forEach(s => navObserver.observe(s));
+
+  // ── SCROLL REVEAL ──
+  const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  revealElements.forEach(el => revealObserver.observe(el));
+
+  // ── ALLOCATION BAR ANIMATION ──
+  const allocBars = document.querySelectorAll('.alloc-bar[data-width]');
+
+  const allocObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const bars = entry.target.querySelectorAll('.alloc-bar[data-width]');
+        bars.forEach((bar, i) => {
+          setTimeout(() => {
+            bar.style.width = bar.dataset.width + '%';
+          }, i * 100);
+        });
+        allocObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  const allocSection = document.getElementById('allocSection');
+  if (allocSection) allocObserver.observe(allocSection);
+
+  // ── TYPING EFFECT ──
+  const typeTarget = document.getElementById('heroLabel');
+  const typeText = 'Decentralized Autonomous Embodied Intelligence';
+  let charIndex = 0;
+
+  function typeWriter() {
+    if (charIndex < typeText.length) {
+      typeTarget.textContent += typeText.charAt(charIndex);
+      charIndex++;
+      setTimeout(typeWriter, 40 + Math.random() * 30);
+    }
+  }
+
+  setTimeout(typeWriter, 1200);
+
+  // ── NEURAL NETWORK CANVAS ──
+  const neuralCanvas = document.getElementById('neuralCanvas');
+  if (neuralCanvas) {
+    const nCtx = neuralCanvas.getContext('2d');
+    const nW = neuralCanvas.width;
+    const nH = neuralCanvas.height;
+
+    const modules = [
+      { x: 80,  y: 60,  label: 'PERCEPTION',  color: '#4a8cff', icon: '👁' },
+      { x: 380, y: 60,  label: 'ATTENTION',    color: '#00d4a8', icon: '🎯' },
+      { x: 80,  y: 150, label: 'REASONING',    color: '#4a8cff', icon: '💭' },
+      { x: 380, y: 150, label: 'ARBITER',      color: '#e8c87a', icon: '⚖️' },
+      { x: 80,  y: 240, label: 'PLANNING',     color: '#00d4a8', icon: '🗺' },
+      { x: 380, y: 240, label: 'MOTOR',        color: '#c084fc', icon: '🦾' },
+    ];
+
+    const connections = [
+      [0, 1], [0, 2], [1, 0], [1, 2], [2, 3], [2, 4], [3, 2], [3, 5], [4, 5], [5, 0]
+    ];
+
+    let pulses = [];
+    let nFrame = 0;
+
+    function spawnPulse() {
+      const conn = connections[Math.floor(Math.random() * connections.length)];
+      pulses.push({
+        from: conn[0],
+        to: conn[1],
+        progress: 0,
+        speed: 0.008 + Math.random() * 0.008,
+        color: modules[conn[0]].color
+      });
+    }
+
+    function drawNeural() {
+      nCtx.clearRect(0, 0, nW, nH);
+
+      connections.forEach(([from, to]) => {
+        nCtx.beginPath();
+        nCtx.moveTo(modules[from].x, modules[from].y);
+        nCtx.lineTo(modules[to].x, modules[to].y);
+        nCtx.strokeStyle = 'rgba(74,140,255,0.1)';
+        nCtx.lineWidth = 1;
+        nCtx.setLineDash([4, 4]);
+        nCtx.stroke();
+        nCtx.setLineDash([]);
+      });
+
+      pulses = pulses.filter(p => p.progress <= 1);
+      pulses.forEach(p => {
+        p.progress += p.speed;
+        const from = modules[p.from];
+        const to = modules[p.to];
+        const x = from.x + (to.x - from.x) * p.progress;
+        const y = from.y + (to.y - from.y) * p.progress;
+
+        nCtx.beginPath();
+        nCtx.arc(x, y, 3, 0, Math.PI * 2);
+        nCtx.fillStyle = p.color;
+        nCtx.shadowColor = p.color;
+        nCtx.shadowBlur = 10;
+        nCtx.fill();
+        nCtx.shadowBlur = 0;
+      });
+
+      modules.forEach((m, i) => {
+        nCtx.beginPath();
+        nCtx.roundRect(m.x - 50, m.y - 24, 100, 48, 8);
+        nCtx.fillStyle = 'rgba(8,13,28,0.9)';
+        nCtx.strokeStyle = m.color;
+        nCtx.lineWidth = 1;
+        nCtx.fill();
+        nCtx.stroke();
+
+        nCtx.fillStyle = m.color;
+        nCtx.font = '8px "DM Mono", monospace';
+        nCtx.textAlign = 'center';
+        nCtx.fillText(m.label, m.x, m.y + 4);
+      });
+
+      nFrame++;
+      if (nFrame % 30 === 0) spawnPulse();
+
+      requestAnimationFrame(drawNeural);
+    }
+
+    drawNeural();
+  }
+
+  // ── PARALLAX on scroll for orbs ──
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    const orbs = document.querySelectorAll('.hero-orb');
+    orbs.forEach((orb, i) => {
+      const speed = (i + 1) * 0.05;
+      orb.style.transform = `translateY(${scrollY * speed}px)`;
+    });
+  });
+
+  // ── SMOOTH SECTION TRANSITIONS ──
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
