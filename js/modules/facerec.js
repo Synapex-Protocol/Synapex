@@ -9,7 +9,9 @@ SynapexLab.initFaceRec = function (el) {
       <button class="tm-btn" id="frStartCam">Start Camera</button>
       <button class="tm-btn outline" id="frToggleScan" disabled>Start Scanning</button>
       <button class="tm-btn outline" id="frAddPerson">+ Add Person</button>
-      <button class="tm-btn outline" id="frExportDB">Export Database</button>
+      <button class="tm-btn outline" id="frSaveTrain">Save Training</button>
+      <button class="tm-btn outline" id="frLoadTrain">Load Training</button>
+      <button class="tm-btn outline" id="frExportDB">Export DB</button>
       <button class="tm-btn outline" id="frExportPy">Export Python</button>
     </div>
 
@@ -39,6 +41,8 @@ SynapexLab.initFaceRec = function (el) {
           ${range('frMatchThresh', 'Recognition Threshold', 0.3, 0.95, 0.62, 0.01, '')}
           ${sel('frDetMethod', 'Detection Method', [{v:'auto',t:'Auto (native if available)',s:true},'skin'])}
           ${range('frMaxSamples', 'Max Samples per Person', 5, 200, 50, 5, '')}
+          ${range('frMinQuality', 'Min Quality Score', 0.2, 0.9, 0.5, 0.05, '')}
+          ${range('frMinSamplesTrain', 'Min Samples for Training', 3, 30, 5, 1, '')}
         </div>
 
         <div class="tm-params" style="margin-top:14px;">
@@ -73,7 +77,15 @@ SynapexLab.initFaceRec = function (el) {
   wireRanges(el);
 
   engine = new FaceRecEngine();
+  if (engine.loadFromStorage()) setTimeout(renderPersonList, 0);
   engine.onLog = (type, msg) => logMsg(type, msg);
+  engine.onSampleAdded = (personId, person) => {
+    if (person.samples.length >= engine.config.minSamplesForTraining) {
+      engine.saveToStorage();
+      logMsg('train', `Auto-saved: "${person.name}" has ${person.samples.length} samples (training ready)`);
+    }
+    renderPersonList();
+  };
 
   const fpsEl = document.getElementById('frFps');
   setInterval(() => { if (engine && engine.running) fpsEl.textContent = engine.fps + ' FPS'; }, 500);
@@ -130,13 +142,31 @@ SynapexLab.initFaceRec = function (el) {
     const id = engine.addPerson(name.trim());
 
     if (engine.scanning && engine.detections.length > 0) {
+      engine.startCollectionForPerson(id);
       const face = engine.detections[0];
       const desc = engine.extractDescriptor(engine.videoEl, face);
       const thumb = engine._cropThumbnail(engine.videoEl, face);
-      engine.addSample(id, desc, thumb);
-      logMsg('train', `First sample captured for "${name}" from live camera`);
+      engine.addSample(id, desc, thumb, face.trackId);
+      logMsg('train', `First sample captured for "${name}" — tracking face for consistent samples`);
     }
     renderPersonList();
+  });
+
+  document.getElementById('frSaveTrain').addEventListener('click', () => {
+    syncConfig();
+    if (engine.saveToStorage()) {
+      logMsg('sys', 'Training saved — can be loaded later for incremental training');
+      renderPersonList();
+    }
+  });
+
+  document.getElementById('frLoadTrain').addEventListener('click', () => {
+    syncConfig();
+    if (engine.loadFromStorage()) {
+      renderPersonList();
+    } else {
+      logMsg('warn', 'No saved training found or load failed');
+    }
   });
 
   document.getElementById('frExportDB').addEventListener('click', () => {
@@ -170,6 +200,8 @@ SynapexLab.initFaceRec = function (el) {
     engine.config.scanInterval = v('frScanInterval') || 500;
     engine.config.matchThreshold = v('frMatchThresh') || 0.62;
     engine.config.maxSamplesPerPerson = v('frMaxSamples') || 50;
+    engine.config.minQualityScore = v('frMinQuality') ?? 0.5;
+    engine.config.minSamplesForTraining = v('frMinSamplesTrain') ?? 5;
     engine.config.descriptorSize = v('frDescSize') || 256;
     engine.config.autoTrainEnabled = c('frAutoTrain');
     engine.config.autoScanOnDetect = c('frAutoScan');
@@ -190,14 +222,17 @@ SynapexLab.initFaceRec = function (el) {
       list.innerHTML = '<div style="text-align:center;padding:20px;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);">No persons in database.<br>Click "+ Add Person" then scan their face.</div>';
       return;
     }
+    const activeId = engine.activeCollectionPersonId;
     list.innerHTML = entries.map(([id, p]) => {
       const ago = p.lastSeen ? Math.round((Date.now() - p.lastSeen) / 1000) + 's ago' : 'never';
-      return `<div class="fr-person-card" id="frP_${id}">
+      const isCollecting = activeId === id;
+      return `<div class="fr-person-card ${isCollecting ? 'collecting' : ''}" id="frP_${id}">
         <div class="fr-person-thumb">${p.thumbnail ? `<img src="${p.thumbnail}">` : ''}</div>
         <div class="fr-person-info">
           <div class="fr-person-name">${p.name}</div>
           <div class="fr-person-meta">${p.scanCount} scans · last: ${ago}</div>
           <div class="fr-person-meta">${p.samples.length} samples stored</div>
+          <button class="tm-btn outline small fr-collect-btn" data-pid="${id}">${isCollecting ? 'Stop' : 'Collect'}</button>
         </div>
         <button class="fr-person-del" data-pid="${id}">×</button>
       </div>`;
@@ -207,6 +242,20 @@ SynapexLab.initFaceRec = function (el) {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         engine.removePerson(btn.dataset.pid);
+        renderPersonList();
+      });
+    });
+    list.querySelectorAll('.fr-collect-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pid = btn.dataset.pid;
+        if (engine.activeCollectionPersonId === pid) {
+          engine.stopCollection();
+          logMsg('sys', 'Stopped collecting — all faces will be considered');
+        } else {
+          engine.startCollectionForPerson(pid);
+          logMsg('sys', 'Collecting samples for "' + engine.persons[pid].name + '" — only tracked face will be saved');
+        }
         renderPersonList();
       });
     });
