@@ -92,9 +92,11 @@ img { max-width: 100%; display: block; }
    ═══════════════════════════════════════════════════ */
 .nav {
   position: fixed;
-  top: 0; left: 0;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
-  max-width: 100%;
+  max-width: 1200px;
   box-sizing: border-box;
   z-index: 1000;
   height: var(--nav-h);
@@ -2106,7 +2108,7 @@ select.tm-input {
 
 @media (max-width: 768px) {
   .nav {
-    padding-left: max(16px, env(safe-area-inset-left, 16px));
+    padding-left: max(20px, env(safe-area-inset-left, 20px));
     padding-right: max(20px, env(safe-area-inset-right, 20px));
   }
   .nav-links { display: none; }
@@ -2168,7 +2170,7 @@ select.tm-input {
 @media (max-width: 480px) {
   .nav {
     padding-left: max(14px, env(safe-area-inset-left, 14px));
-    padding-right: max(22px, env(safe-area-inset-right, 22px));
+    padding-right: max(14px, env(safe-area-inset-right, 14px));
   }
   .section { padding: 40px 14px; }
   .page-hero { padding: 36px 14px 32px; }
