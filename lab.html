@@ -109,7 +109,7 @@
 </div>
 
 <!-- MODULE LIBRARY -->
-<section class="section" style="border-top:1px solid var(--border);background:linear-gradient(180deg,transparent,rgba(74,140,255,0.012),transparent);">
+<section class="section" id="moduleLibrary" style="border-top:1px solid var(--border);background:linear-gradient(180deg,transparent,rgba(74,140,255,0.012),transparent);">
   <div class="section-header center reveal">
     <div class="section-label">Module Library</div>
     <h2 class="section-title">Plug-and-Play <span class="accent">AI Modules</span></h2>
@@ -119,15 +119,15 @@
     </p>
   </div>
 
-  <div class="grid-3 stagger">
-    <div class="module-card reveal">
+  <div class="tools-grid stagger">
+    <div class="module-card module-clickable reveal" data-module="facerec">
       <div class="module-preview">
         <span class="module-status soon">Phase 1</span>
         <span class="module-icon">&#128373;</span>
       </div>
       <div class="module-body">
         <div class="module-title">Face Recognition</div>
-        <div class="module-desc">Real-time face detection, identification, and verification. Multi-angle support, low-light optimization. Deployable as API or edge model.</div>
+        <div class="module-desc">Real-time face detection, identification, and verification. Multi-angle support, low-light optimization.</div>
         <div class="module-tags">
           <span class="module-tag">Computer Vision</span>
           <span class="module-tag">Biometric</span>
@@ -136,14 +136,14 @@
       </div>
     </div>
 
-    <div class="module-card reveal">
+    <div class="module-card module-clickable reveal" data-module="facescan">
       <div class="module-preview" style="background:linear-gradient(135deg,var(--surface2),rgba(0,212,168,0.04));">
         <span class="module-status soon">Phase 1</span>
         <span class="module-icon">&#129529;</span>
       </div>
       <div class="module-body">
         <div class="module-title">3D Face Scanning</div>
-        <div class="module-desc">Depth-based facial geometry reconstruction. Generate detailed 3D mesh from RGB-D input. Landmark extraction, expression tracking.</div>
+        <div class="module-desc">Depth-based facial geometry reconstruction. Generate detailed 3D mesh from RGB-D input. Landmark extraction.</div>
         <div class="module-tags">
           <span class="module-tag">3D Reconstruction</span>
           <span class="module-tag">Depth Sensing</span>
@@ -152,14 +152,14 @@
       </div>
     </div>
 
-    <div class="module-card reveal">
+    <div class="module-card module-clickable reveal" data-module="objdet">
       <div class="module-preview" style="background:linear-gradient(135deg,var(--surface2),rgba(192,132,252,0.04));">
         <span class="module-status dev">In Dev</span>
         <span class="module-icon">&#128065;</span>
       </div>
       <div class="module-body">
         <div class="module-title">Object Detection</div>
-        <div class="module-desc">Real-time multi-class object detection and instance segmentation. Optimized for both cloud inference and edge deployment.</div>
+        <div class="module-desc">Real-time multi-class object detection and instance segmentation. Cloud and edge deployment.</div>
         <div class="module-tags">
           <span class="module-tag">Detection</span>
           <span class="module-tag">Segmentation</span>
@@ -168,14 +168,14 @@
       </div>
     </div>
 
-    <div class="module-card reveal">
+    <div class="module-card module-clickable reveal" data-module="pose">
       <div class="module-preview" style="background:linear-gradient(135deg,var(--surface2),rgba(232,200,122,0.04));">
         <span class="module-status dev">In Dev</span>
         <span class="module-icon">&#128100;</span>
       </div>
       <div class="module-body">
         <div class="module-title">Pose Estimation</div>
-        <div class="module-desc">Full-body and hand pose estimation from single RGB. Skeleton tracking, gesture recognition, action classification.</div>
+        <div class="module-desc">Full-body and hand pose estimation from single RGB. Skeleton tracking, gesture recognition.</div>
         <div class="module-tags">
           <span class="module-tag">Skeleton</span>
           <span class="module-tag">Gesture</span>
@@ -184,14 +184,14 @@
       </div>
     </div>
 
-    <div class="module-card reveal">
+    <div class="module-card module-clickable reveal" data-module="speech">
       <div class="module-preview" style="background:linear-gradient(135deg,var(--surface2),rgba(255,85,119,0.04));">
         <span class="module-status dev">Planned</span>
         <span class="module-icon">&#128483;</span>
       </div>
       <div class="module-body">
         <div class="module-title">Speech Recognition</div>
-        <div class="module-desc">Multi-language automatic speech recognition with speaker diarization. Low-latency streaming and batch processing modes.</div>
+        <div class="module-desc">Multi-language ASR with speaker diarization. Low-latency streaming and batch processing.</div>
         <div class="module-tags">
           <span class="module-tag">ASR</span>
           <span class="module-tag">NLP</span>
@@ -200,14 +200,14 @@
       </div>
     </div>
 
-    <div class="module-card reveal">
+    <div class="module-card module-clickable reveal" data-module="scene">
       <div class="module-preview" style="background:linear-gradient(135deg,var(--surface2),rgba(74,140,255,0.04));">
         <span class="module-status dev">Planned</span>
         <span class="module-icon">&#127916;</span>
       </div>
       <div class="module-body">
         <div class="module-title">Scene Understanding</div>
-        <div class="module-desc">Semantic and panoptic scene segmentation. Spatial relationship mapping. Environment context extraction for embodied navigation.</div>
+        <div class="module-desc">Semantic and panoptic segmentation. Spatial relationship mapping for embodied navigation.</div>
         <div class="module-tags">
           <span class="module-tag">Panoptic</span>
           <span class="module-tag">Navigation</span>
@@ -342,5 +342,6 @@
 
 <script src="js/main.js"></script>
 <script src="js/lab-tools.js"></script>
+<script src="js/lab-modules.js"></script>
 </body>
 </html>
