@@ -16,8 +16,8 @@
 class FaceRecEngine {
   constructor(config = {}) {
     this.config = {
-      minFaceSize: 60,
-      scanInterval: 500,
+      minFaceSize: 80,
+      scanInterval: 400,
       matchThreshold: 0.62,
       maxSamplesPerPerson: 50,
       descriptorSize: 256,
@@ -29,9 +29,12 @@ class FaceRecEngine {
       skinCbMin: 77, skinCbMax: 127,
       skinCrMin: 133, skinCrMax: 173,
       morphKernel: 5,
-      minRegionRatio: 0.008,
+      minRegionRatio: 0.02,
       detectionMethod: 'auto',
-      trackMaxDistance: 80,
+      trackMaxDistance: 60,
+      smoothAlpha: 0.35,
+      stabilityFrames: 2,
+      maxDisplayFaces: 1,
       ...config
     };
 
@@ -42,6 +45,9 @@ class FaceRecEngine {
     this.trackedFaces = [];
     this.activeCollectionTrackId = null;
     this.activeCollectionPersonId = null;
+    this.smoothedFaces = {};
+    this.faceStability = {};
+    this.facingMode = 'user';
     this.videoEl = null;
     this.canvasEl = null;
     this.ctx = null;
@@ -78,7 +84,7 @@ class FaceRecEngine {
 
   /* ── CAMERA ────────────────────────────────── */
 
-  async startCamera(videoEl, canvasEl) {
+  async startCamera(videoEl, canvasEl, opts = {}) {
     this.videoEl = videoEl;
     this.canvasEl = canvasEl;
     this.ctx = canvasEl.getContext('2d', { willReadFrequently: true });
@@ -86,9 +92,13 @@ class FaceRecEngine {
     this.workCanvas = document.createElement('canvas');
     this.workCtx = this.workCanvas.getContext('2d', { willReadFrequently: true });
 
+    const facing = opts.facingMode || this.facingMode || 'user';
+    const idealW = opts.width || 1280;
+    const idealH = opts.height || 720;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+        video: { facingMode: facing, width: { ideal: idealW }, height: { ideal: idealH } }
       });
       videoEl.srcObject = stream;
       await videoEl.play();
@@ -96,14 +106,25 @@ class FaceRecEngine {
       canvasEl.height = videoEl.videoHeight;
       this.workCanvas.width = videoEl.videoWidth;
       this.workCanvas.height = videoEl.videoHeight;
+      this.facingMode = facing;
       this.running = true;
-      this._log('sys', `Camera started: ${videoEl.videoWidth}x${videoEl.videoHeight}`);
+      this.smoothedFaces = {};
+      this.faceStability = {};
+      this._log('sys', `Camera: ${videoEl.videoWidth}x${videoEl.videoHeight} (${facing})`);
       this._loop();
       return true;
     } catch (e) {
       this._log('warn', 'Camera access denied: ' + e.message);
       return false;
     }
+  }
+
+  async switchCamera(videoEl, canvasEl) {
+    this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+    if (this.videoEl?.srcObject) {
+      this.videoEl.srcObject.getTracks().forEach(t => t.stop());
+    }
+    return this.startCamera(videoEl, canvasEl, { facingMode: this.facingMode });
   }
 
   stopCamera() {
@@ -139,30 +160,26 @@ class FaceRecEngine {
 
     const shouldScan = this.scanning && (now - this.lastScanTime >= this.config.scanInterval);
 
-    let faces;
+    let rawFaces;
     if (this.nativeFaceDetector && this.config.detectionMethod !== 'skin') {
-      faces = await this._detectNative(v);
+      rawFaces = await this._detectNative(v);
     } else {
-      faces = this._detectSkinColor(v);
+      rawFaces = this._detectSkinColor(v);
     }
 
-    this._updateFaceTracks(faces);
+    this._updateFaceTracks(rawFaces);
+    const faces = this._smoothAndFilterFaces(rawFaces);
     this.detections = faces;
 
     faces.forEach((face, i) => {
-      this._drawFaceBox(face, i);
-
       if (shouldScan) {
         const descriptor = this.extractDescriptor(v, face);
         const match = this.recognize(descriptor);
         face.descriptor = descriptor;
         face.match = match;
-
         const quality = this._computeSampleQuality(v, face, descriptor);
         face.quality = quality;
-
         if (this.onDetection) this.onDetection(face);
-
         const canAddSample = this._canAddSampleForFace(face);
         if (match.personId && match.similarity >= this.config.matchThreshold) {
           if (this.config.autoTrainEnabled && canAddSample && quality >= this.config.minQualityScore) {
@@ -176,9 +193,8 @@ class FaceRecEngine {
           }
           this._drawLabel(face, 'Unknown', match.similarity);
         }
-      } else {
-        this._drawFaceBox(face, i, true);
       }
+      this._drawFaceBox(face, i, !shouldScan);
     });
 
     this._drawScanIndicator();
@@ -190,6 +206,7 @@ class FaceRecEngine {
     const maxDist = this.config.trackMaxDistance;
     const prev = this.trackedFaces;
     const next = [];
+    const used = new Set();
 
     for (const face of faces) {
       const cx = face.x + face.w / 2;
@@ -199,6 +216,7 @@ class FaceRecEngine {
       let bestDist = maxDist;
 
       for (let i = 0; i < prev.length; i++) {
+        if (used.has(i)) continue;
         const p = prev[i];
         const dist = Math.hypot(cx - p.cx, cy - p.cy);
         if (dist < bestDist) {
@@ -206,13 +224,69 @@ class FaceRecEngine {
           bestIdx = i;
         }
       }
+      if (bestIdx >= 0) used.add(bestIdx);
 
       const trackId = bestIdx >= 0 ? prev[bestIdx].trackId : Date.now() + '_' + Math.random().toString(36).slice(2);
       face.trackId = trackId;
       next.push({ trackId, cx, cy });
     }
 
-    this.trackedFaces = next.slice(0, 10);
+    this.trackedFaces = next.slice(0, 5);
+  }
+
+  _smoothAndFilterFaces(rawFaces) {
+    const alpha = this.config.smoothAlpha;
+    const stabilityReq = this.config.stabilityFrames;
+    const maxFaces = this.config.maxDisplayFaces;
+
+    const stable = [];
+
+    for (const face of rawFaces) {
+      const tid = face.trackId;
+      const prev = this.smoothedFaces[tid];
+      const box = { x: face.x, y: face.y, w: face.w, h: face.h };
+
+      let sm;
+      if (prev) {
+        sm = {
+          x: alpha * face.x + (1 - alpha) * prev.x,
+          y: alpha * face.y + (1 - alpha) * prev.y,
+          w: alpha * face.w + (1 - alpha) * prev.w,
+          h: alpha * face.h + (1 - alpha) * prev.h
+        };
+      } else {
+        sm = { ...box };
+      }
+      this.smoothedFaces[tid] = sm;
+
+      const dx = Math.abs(sm.x - (prev?.x ?? sm.x));
+      const dy = Math.abs(sm.y - (prev?.y ?? sm.y));
+      const move = Math.hypot(dx, dy);
+      const stab = this.faceStability[tid] || { count: 0, lastBox: sm };
+      if (move < 15) {
+        stab.count = Math.min(stabilityReq, stab.count + 1);
+      } else {
+        stab.count = 0;
+      }
+      stab.lastBox = sm;
+      this.faceStability[tid] = stab;
+
+      if (stab.count >= stabilityReq - 1) {
+        const out = { ...face, x: Math.round(sm.x), y: Math.round(sm.y), w: Math.round(sm.w), h: Math.round(sm.h) };
+        out.stability = stab.count;
+        stable.push(out);
+      }
+    }
+
+    const toRemove = new Set(Object.keys(this.smoothedFaces));
+    for (const f of rawFaces) toRemove.delete(f.trackId);
+    for (const tid of toRemove) {
+      delete this.smoothedFaces[tid];
+      delete this.faceStability[tid];
+    }
+
+    stable.sort((a, b) => (b.w * b.h) - (a.w * a.h));
+    return stable.slice(0, maxFaces);
   }
 
   _canAddSampleForFace(face) {
@@ -311,14 +385,16 @@ class FaceRecEngine {
         if (r.area < minArea) return false;
         if (r.w < cfg.minFaceSize || r.h < cfg.minFaceSize) return false;
         const aspect = r.w / r.h;
-        return aspect > 0.5 && aspect < 1.8;
+        if (aspect < 0.6 || aspect > 1.4) return false;
+        if (r.density < 0.4) return false;
+        return true;
       })
       .map(r => ({
         x: r.x, y: r.y, w: r.w, h: r.h,
-        confidence: Math.min(0.95, 0.5 + (r.density * 0.6)),
+        confidence: Math.min(0.95, 0.5 + (r.density * 0.5)),
         method: 'skin'
       }))
-      .slice(0, 10);
+      .slice(0, 3);
   }
 
   _findConnectedRegions(mask, w, h) {
