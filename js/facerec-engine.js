@@ -23,12 +23,15 @@ class FaceRecEngine {
       descriptorSize: 256,
       autoTrainEnabled: true,
       autoScanOnDetect: true,
+      minSamplesForTraining: 5,
+      minQualityScore: 0.5,
       skinYMin: 60, skinYMax: 255,
       skinCbMin: 77, skinCbMax: 127,
       skinCrMin: 133, skinCrMax: 173,
       morphKernel: 5,
       minRegionRatio: 0.008,
       detectionMethod: 'auto',
+      trackMaxDistance: 80,
       ...config
     };
 
@@ -36,6 +39,9 @@ class FaceRecEngine {
     this.nextPersonId = 1;
     this.running = false;
     this.scanning = false;
+    this.trackedFaces = [];
+    this.activeCollectionTrackId = null;
+    this.activeCollectionPersonId = null;
     this.videoEl = null;
     this.canvasEl = null;
     this.ctx = null;
@@ -140,6 +146,7 @@ class FaceRecEngine {
       faces = this._detectSkinColor(v);
     }
 
+    this._updateFaceTracks(faces);
     this.detections = faces;
 
     faces.forEach((face, i) => {
@@ -151,21 +158,96 @@ class FaceRecEngine {
         face.descriptor = descriptor;
         face.match = match;
 
+        const quality = this._computeSampleQuality(v, face, descriptor);
+        face.quality = quality;
+
         if (this.onDetection) this.onDetection(face);
 
+        const canAddSample = this._canAddSampleForFace(face);
         if (match.personId && match.similarity >= this.config.matchThreshold) {
-          if (this.config.autoTrainEnabled) {
-            this.addSample(match.personId, descriptor, this._cropThumbnail(v, face));
+          if (this.config.autoTrainEnabled && canAddSample && quality >= this.config.minQualityScore) {
+            this.addSample(match.personId, descriptor, this._cropThumbnail(v, face), face.trackId);
           }
           if (this.onRecognition) this.onRecognition(match, face);
           this._drawLabel(face, this.persons[match.personId].name, match.similarity);
         } else {
+          if (this.activeCollectionPersonId && canAddSample && quality >= this.config.minQualityScore) {
+            this.addSample(this.activeCollectionPersonId, descriptor, this._cropThumbnail(v, face), face.trackId);
+          }
           this._drawLabel(face, 'Unknown', match.similarity);
         }
+      } else {
+        this._drawFaceBox(face, i, true);
       }
     });
 
+    this._drawScanIndicator();
+
     if (shouldScan) this.lastScanTime = now;
+  }
+
+  _updateFaceTracks(faces) {
+    const maxDist = this.config.trackMaxDistance;
+    const prev = this.trackedFaces;
+    const next = [];
+
+    for (const face of faces) {
+      const cx = face.x + face.w / 2;
+      const cy = face.y + face.h / 2;
+
+      let bestIdx = -1;
+      let bestDist = maxDist;
+
+      for (let i = 0; i < prev.length; i++) {
+        const p = prev[i];
+        const dist = Math.hypot(cx - p.cx, cy - p.cy);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = i;
+        }
+      }
+
+      const trackId = bestIdx >= 0 ? prev[bestIdx].trackId : Date.now() + '_' + Math.random().toString(36).slice(2);
+      face.trackId = trackId;
+      next.push({ trackId, cx, cy });
+    }
+
+    this.trackedFaces = next.slice(0, 10);
+  }
+
+  _canAddSampleForFace(face) {
+    if (!this.activeCollectionPersonId || !this.activeCollectionTrackId) return true;
+    return face.trackId === this.activeCollectionTrackId;
+  }
+
+  _computeSampleQuality(source, face, descriptor) {
+    let score = 0.5;
+    const c = this.workCanvas;
+    const ctx = this.workCtx;
+    const size = 64;
+    c.width = size;
+    c.height = size;
+    ctx.drawImage(source, face.x, face.y, face.w, face.h, 0, 0, size, size);
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const data = imgData.data;
+
+    let sumBright = 0, sumSq = 0, n = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const g = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      sumBright += g;
+      sumSq += g * g;
+      n++;
+    }
+    const mean = sumBright / n;
+    const variance = (sumSq / n) - (mean * mean);
+    if (mean >= 40 && mean <= 200) score += 0.2;
+    if (variance > 100) score += 0.2;
+    if (face.w >= this.config.minFaceSize * 1.2) score += 0.1;
+    if (face.confidence > 0.8) score += 0.1;
+
+    c.width = this.videoEl ? this.videoEl.videoWidth : 640;
+    c.height = this.videoEl ? this.videoEl.videoHeight : 480;
+    return Math.min(1, score);
   }
 
   /* ── DETECTION: Native FaceDetector API ───── */
@@ -424,9 +506,15 @@ class FaceRecEngine {
     this._log('sys', `Person removed: "${name}"`);
   }
 
-  addSample(personId, descriptor, thumbnail) {
+  addSample(personId, descriptor, thumbnail, trackId) {
     const person = this.persons[personId];
     if (!person) return;
+
+    if (!this.activeCollectionPersonId || this.activeCollectionPersonId !== personId) {
+      this.activeCollectionPersonId = personId;
+      this.activeCollectionTrackId = trackId || null;
+    }
+    if (trackId && !this.activeCollectionTrackId) this.activeCollectionTrackId = trackId;
 
     if (person.samples.length >= this.config.maxSamplesPerPerson) {
       person.samples.shift();
@@ -438,6 +526,7 @@ class FaceRecEngine {
     if (thumbnail) person.thumbnail = thumbnail;
 
     this._recomputeMean(personId);
+    if (this.onSampleAdded) this.onSampleAdded(personId, person);
   }
 
   _recomputeMean(personId) {
@@ -458,16 +547,18 @@ class FaceRecEngine {
 
   /* ── DRAWING ───────────────────────────────── */
 
-  _drawFaceBox(face, index) {
+  _drawFaceBox(face, index, detectOnly = false) {
     const ctx = this.ctx;
-    const isMatched = face.match && face.match.personId && face.match.similarity >= this.config.matchThreshold;
-    const color = isMatched ? '#00d4a8' : '#4a8cff';
+    const isMatched = !detectOnly && face.match && face.match.personId && face.match.similarity >= this.config.matchThreshold;
+    const isTracked = face.trackId === this.activeCollectionTrackId;
+    let color = isMatched ? '#00d4a8' : '#4a8cff';
+    if (isTracked) color = '#f0b429';
 
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = detectOnly ? 1.5 : 2.5;
     ctx.setLineDash([]);
 
-    const cornerLen = 12;
+    const cornerLen = 14;
     const x = face.x, y = face.y, w = face.w, h = face.h;
 
     ctx.beginPath();
@@ -477,10 +568,17 @@ class FaceRecEngine {
     ctx.moveTo(x + cornerLen, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - cornerLen);
     ctx.stroke();
 
-    ctx.setLineDash([3, 3]);
-    ctx.strokeStyle = color + '44';
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = color + '66';
     ctx.strokeRect(x, y, w, h);
     ctx.setLineDash([]);
+  }
+
+  _drawScanIndicator() {
+    if (!this.scanning || !this.ctx) return;
+    const ctx = this.ctx;
+    ctx.fillStyle = 'rgba(0,212,168,0.25)';
+    ctx.fillRect(0, 0, this.canvasEl.width, 3);
   }
 
   _drawLabel(face, text, similarity) {
@@ -514,6 +612,70 @@ class FaceRecEngine {
     return tc.toDataURL('image/jpeg', 0.7);
   }
 
+  /* ── PERSISTENCE (save/load for incremental training) ── */
+  static STORAGE_KEY = 'synapex_facerec_db';
+
+  saveToStorage() {
+    const db = this.exportDatabase();
+    try {
+      localStorage.setItem(FaceRecEngine.STORAGE_KEY, JSON.stringify(db));
+      this._log('sys', 'Training data saved to browser storage');
+      return true;
+    } catch (e) {
+      this._log('warn', 'Could not save: ' + e.message);
+      return false;
+    }
+  }
+
+  loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(FaceRecEngine.STORAGE_KEY);
+      if (!raw) return false;
+      const db = JSON.parse(raw);
+      this.importDatabase(db);
+      this._log('sys', 'Training data loaded from browser storage');
+      return true;
+    } catch (e) {
+      this._log('warn', 'Could not load: ' + e.message);
+      return false;
+    }
+  }
+
+  importDatabase(db) {
+    if (!db || !db.persons) return;
+    let maxId = 0;
+    for (const id of Object.keys(db.persons)) {
+      const m = id.match(/^p(\d+)$/);
+      if (m) maxId = Math.max(maxId, parseInt(m[1], 10));
+    }
+    this.nextPersonId = maxId + 1;
+
+    for (const [id, data] of Object.entries(db.persons)) {
+      this.persons[id] = {
+        name: data.name,
+        samples: data.samples || [],
+        meanDescriptor: data.mean_descriptor ? new Float32Array(data.mean_descriptor) : null,
+        thumbnail: data.thumbnail || null,
+        createdAt: data.created_at || Date.now(),
+        lastSeen: data.last_seen || null,
+        scanCount: data.scan_count || (data.samples ? data.samples.length : 0)
+      };
+      if (!this.persons[id].meanDescriptor && this.persons[id].samples.length > 0) {
+        this._recomputeMean(id);
+      }
+    }
+  }
+
+  startCollectionForPerson(personId) {
+    this.activeCollectionPersonId = personId;
+    this.activeCollectionTrackId = null;
+  }
+
+  stopCollection() {
+    this.activeCollectionPersonId = null;
+    this.activeCollectionTrackId = null;
+  }
+
   /* ── EXPORT ────────────────────────────────── */
   /*  Output format matches Python dict structure:
       { "persons": { "p1": { "name": "...", "samples": [...], "mean_descriptor": [...] } }, "config": {...} }
@@ -526,6 +688,7 @@ class FaceRecEngine {
         name: person.name,
         samples: person.samples,
         mean_descriptor: person.meanDescriptor ? Array.from(person.meanDescriptor) : null,
+        thumbnail: person.thumbnail || null,
         scan_count: person.scanCount,
         created_at: person.createdAt,
         last_seen: person.lastSeen
