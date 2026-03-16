@@ -93,97 +93,231 @@
   }
 
   /* ═════════════════════════════════════════════════
-     1. FACE RECOGNITION
+     1. FACE RECOGNITION — Live Camera System
      ═════════════════════════════════════════════════ */
   function initFaceRec(el) {
+    let engine = null;
+
     el.innerHTML = `
-      <div class="tm-grid">
-        <div class="tm-stat"><div class="tm-stat-val" style="color:var(--accent)">99.4%</div><div class="tm-stat-lbl">LFW Accuracy</div></div>
-        <div class="tm-stat"><div class="tm-stat-val" style="color:var(--accent2)">120</div><div class="tm-stat-lbl">FPS (RTX 4090)</div></div>
-        <div class="tm-stat"><div class="tm-stat-val" style="color:var(--gold)">54M</div><div class="tm-stat-lbl">Parameters</div></div>
-        <div class="tm-stat"><div class="tm-stat-val" style="color:var(--purple)">215 MB</div><div class="tm-stat-lbl">Model Size</div></div>
+      <div class="fr-actions-bar">
+        <button class="tm-btn" id="frStartCam">Start Camera</button>
+        <button class="tm-btn outline" id="frToggleScan" disabled>Start Scanning</button>
+        <button class="tm-btn outline" id="frAddPerson">+ Add Person</button>
+        <button class="tm-btn outline" id="frExportDB">Export Database</button>
+        <button class="tm-btn outline" id="frExportPy">Export Python</button>
+      </div>
+
+      <div class="fr-live-area">
+        <div class="fr-camera-wrap">
+          <video id="frVideo" playsinline muted></video>
+          <canvas id="frCanvas"></canvas>
+          <div class="fr-camera-overlay" id="frOverlay">
+            <div class="fr-camera-placeholder">Click "Start Camera" to begin<br>face detection & recognition</div>
+          </div>
+          <div class="fr-camera-status off" id="frStatus"><span class="dot"></span>OFFLINE</div>
+          <div class="fr-camera-fps" id="frFps">0 FPS</div>
+        </div>
+        <div class="fr-sidebar" id="frPersonList">
+          <div style="text-align:center;padding:20px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">
+            No persons in database.<br>Click "+ Add Person" then scan their face.
+          </div>
+        </div>
       </div>
 
       <div class="tm-split">
         <div>
           <div class="tm-params">
-            <div class="tm-params-title">Detection Parameters</div>
-            ${range('frMinFace', 'Minimum Face Size (px)', 10, 200, 40, 5, 'px')}
-            ${range('frConfidence', 'Detection Confidence Threshold', 0.1, 0.99, 0.85, 0.01, '')}
-            ${range('frNmsThresh', 'NMS IoU Threshold', 0.1, 0.9, 0.45, 0.05, '')}
-            ${sel('frBackbone', 'Backbone Network', ['ResNet-50','ResNet-101',{v:'MobileNetV3',t:'MobileNetV3 (Edge)',s:false},'EfficientNet-B4'])}
-            ${range('frMaxFaces', 'Max Faces per Frame', 1, 100, 20, 1, '')}
+            <div class="tm-params-title">Detection & Scan Parameters</div>
+            ${range('frMinFace', 'Minimum Face Size (px)', 20, 300, 60, 10, 'px')}
+            ${range('frScanInterval', 'Scan Interval (ms)', 100, 3000, 500, 50, 'ms')}
+            ${range('frMatchThresh', 'Recognition Threshold', 0.3, 0.95, 0.62, 0.01, '')}
+            ${sel('frDetMethod', 'Detection Method', [{v:'auto',t:'Auto (native if available)',s:true},'skin'])}
+            ${range('frMaxSamples', 'Max Samples per Person', 5, 200, 50, 5, '')}
           </div>
 
           <div class="tm-params" style="margin-top:14px;">
-            <div class="tm-params-title">Recognition Settings</div>
-            ${sel('frEmbedding', 'Embedding Dimension', ['128','256',{v:'512',t:'512 (recommended)',s:true},'1024'])}
-            ${range('frMatchThresh', 'Match Similarity Threshold', 0.3, 0.95, 0.72, 0.01, '')}
-            ${sel('frMetric', 'Distance Metric', [{v:'cosine',t:'Cosine Similarity',s:true},'Euclidean L2','Manhattan L1'])}
-            ${sel('frAlign', 'Face Alignment', [{v:'5point',t:'5-point Landmarks',s:true},'68-point Landmarks','3D Alignment (PNCC)'])}
+            <div class="tm-params-title">Auto-Training (Humanoid Mode)</div>
+            ${toggle('frAutoTrain', 'Auto-Train on Recognition', 'Add new descriptor sample each time a known person is scanned', true)}
+            ${toggle('frAutoScan', 'Continuous Scan Mode', 'Capture descriptors every scan interval while faces are visible', true)}
+            ${toggle('frMultiAngle', 'Multi-Angle Accumulation', 'Keep samples from different viewing angles for robustness', true)}
+            ${range('frDescSize', 'Descriptor Size', 64, 512, 256, 64, '')}
           </div>
         </div>
 
         <div>
           <div class="tm-params">
-            <div class="tm-params-title">Preprocessing Pipeline</div>
-            ${toggle('frLowLight', 'Low-Light Enhancement', 'CLAHE adaptive histogram equalization', true)}
-            ${toggle('frAntiSpoof', 'Anti-Spoofing Detection', 'Liveness check via depth + texture analysis', true)}
-            ${toggle('frGenderAge', 'Gender & Age Estimation', 'Auxiliary head for demographic attributes', false)}
-            ${toggle('frEmotion', 'Expression Classification', '7-class FER model (happy, sad, angry, ...)', false)}
-            ${toggle('frMask', 'Masked Face Support', 'Partial occlusion handling for masked faces', true)}
-            ${toggle('frAugment', 'Test-Time Augmentation', 'Multi-crop + flip ensemble at inference', false)}
-          </div>
-
-          <div class="tm-params" style="margin-top:14px;">
-            <div class="tm-params-title">Deployment</div>
-            ${sel('frTarget', 'Target Platform', [{v:'cloud',t:'Cloud (GPU)',s:true},'Edge (TensorRT)','Mobile (CoreML)','WASM (Browser)'])}
-            ${sel('frPrecision', 'Precision', ['FP32',{v:'FP16',t:'FP16 (recommended)',s:true},'INT8 (quantized)'])}
-            ${sel('frBatch', 'Batch Size', ['1','4',{v:'8',t:'8',s:true},'16','32'])}
+            <div class="tm-params-title">Skin Color Detection Tuning</div>
+            ${range('frSkinYMin', 'Y Min (brightness)', 0, 150, 60, 5, '')}
+            ${range('frSkinYMax', 'Y Max', 150, 255, 255, 5, '')}
+            ${range('frSkinCbMin', 'Cb Min (blue-diff)', 50, 130, 77, 1, '')}
+            ${range('frSkinCbMax', 'Cb Max', 100, 180, 127, 1, '')}
+            ${range('frSkinCrMin', 'Cr Min (red-diff)', 100, 180, 133, 1, '')}
+            ${range('frSkinCrMax', 'Cr Max', 140, 220, 173, 1, '')}
+            ${range('frMinRegion', 'Min Region Ratio', 0.001, 0.05, 0.008, 0.001, '')}
           </div>
         </div>
       </div>
 
-      <div class="tm-section" style="margin-top:24px;">
-        <div class="tm-heading">API Endpoint Preview</div>
-        <div class="tm-console"><span class="dim">POST</span> <span class="hl">https://api.synapex.io/v1/face/recognize</span>
-
-<span class="dim">Headers:</span>
-  Authorization: Bearer <span class="hg">$SYNX_API_KEY</span>
-  Content-Type: multipart/form-data
-
-<span class="dim">Body:</span>
-  image: <span class="hp">[binary]</span>
-  min_face_size: <span class="hl2">40</span>
-  confidence_threshold: <span class="hl2">0.85</span>
-  max_faces: <span class="hl2">20</span>
-  return_embeddings: <span class="hl2">true</span>
-  anti_spoof: <span class="hl2">true</span>
-
-<span class="dim">Response (200):</span>
-{
-  "faces_detected": <span class="hl2">3</span>,
-  "inference_ms": <span class="hl2">8.4</span>,
-  "results": [
-    {
-      "bbox": [<span class="hl">102, 84, 287, 341</span>],
-      "confidence": <span class="hl2">0.9987</span>,
-      "identity": <span class="hp">"person_0042"</span>,
-      "similarity": <span class="hl2">0.891</span>,
-      "liveness": <span class="hl2">0.997</span>,
-      "landmarks_5pt": [[<span class="hl">...</span>]]
-    }
-  ]
-}</div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
-        <button class="tm-btn">Deploy Module</button>
-        <button class="tm-btn outline">Export Config</button>
-        <button class="tm-btn outline">Run Benchmark</button>
+      <div class="tm-section" style="margin-top:20px;">
+        <div class="tm-heading">Recognition Log</div>
+        <div class="fr-log" id="frLog"><span class="ev-sys">[system]</span> Face Recognition Engine initialized. Ready to start camera.</div>
       </div>
     `;
+
     wireRanges(el);
+
+    engine = new FaceRecEngine();
+    engine.onLog = (type, msg) => logMsg(type, msg);
+
+    const fpsEl = document.getElementById('frFps');
+    setInterval(() => { if (engine && engine.running) fpsEl.textContent = engine.fps + ' FPS'; }, 500);
+
+    engine.onDetection = (face) => {
+      if (!face.match || !face.match.personId) {
+        logMsg('detect', `Face detected at [${face.x},${face.y}] ${face.w}x${face.h} — no match`);
+      }
+    };
+
+    engine.onRecognition = (match, face) => {
+      const person = engine.persons[match.personId];
+      if (!person) return;
+      logMsg('match', `Recognized: "${person.name}" (${(match.similarity * 100).toFixed(1)}%) — samples: ${person.scanCount}`);
+      renderPersonList();
+    };
+
+    document.getElementById('frStartCam').addEventListener('click', async function () {
+      if (engine.running) {
+        engine.stopCamera();
+        this.textContent = 'Start Camera';
+        document.getElementById('frStatus').className = 'fr-camera-status off';
+        document.getElementById('frStatus').innerHTML = '<span class="dot"></span>OFFLINE';
+        document.getElementById('frOverlay').style.display = '';
+        document.getElementById('frToggleScan').disabled = true;
+        return;
+      }
+
+      syncConfig();
+      document.getElementById('frOverlay').style.display = 'none';
+      const ok = await engine.startCamera(
+        document.getElementById('frVideo'),
+        document.getElementById('frCanvas')
+      );
+      if (ok) {
+        this.textContent = 'Stop Camera';
+        document.getElementById('frStatus').className = 'fr-camera-status';
+        document.getElementById('frStatus').innerHTML = '<span class="dot"></span>LIVE';
+        document.getElementById('frToggleScan').disabled = false;
+      }
+    });
+
+    document.getElementById('frToggleScan').addEventListener('click', function () {
+      syncConfig();
+      engine.scanning = !engine.scanning;
+      this.textContent = engine.scanning ? 'Stop Scanning' : 'Start Scanning';
+      this.className = engine.scanning ? 'tm-btn' : 'tm-btn outline';
+      logMsg('sys', engine.scanning ? 'Scanning started — detecting and recognizing faces' : 'Scanning paused');
+    });
+
+    document.getElementById('frAddPerson').addEventListener('click', () => {
+      const name = prompt('Enter person name:');
+      if (!name || !name.trim()) return;
+      const id = engine.addPerson(name.trim());
+
+      if (engine.scanning && engine.detections.length > 0) {
+        const face = engine.detections[0];
+        const desc = engine.extractDescriptor(engine.videoEl, face);
+        const thumb = engine._cropThumbnail(engine.videoEl, face);
+        engine.addSample(id, desc, thumb);
+        logMsg('train', `First sample captured for "${name}" from live camera`);
+      }
+      renderPersonList();
+    });
+
+    document.getElementById('frExportDB').addEventListener('click', () => {
+      const db = engine.exportDatabase();
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'synapex_facedb_' + Date.now() + '.json'; a.click();
+      URL.revokeObjectURL(url);
+      logMsg('sys', `Database exported: ${Object.keys(db.persons).length} persons`);
+    });
+
+    document.getElementById('frExportPy').addEventListener('click', () => {
+      const code = engine.exportPythonCode();
+      const blob = new Blob([code], { type: 'text/x-python' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'synapex_facedb.py'; a.click();
+      URL.revokeObjectURL(url);
+      logMsg('sys', 'Python database file exported');
+    });
+
+    function syncConfig() {
+      const v = id => {
+        const el = document.getElementById(id);
+        return el ? (el.type === 'range' || el.type === 'number' ? parseFloat(el.value) : el.value) : undefined;
+      };
+      const c = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+
+      engine.config.minFaceSize = v('frMinFace') || 60;
+      engine.config.scanInterval = v('frScanInterval') || 500;
+      engine.config.matchThreshold = v('frMatchThresh') || 0.62;
+      engine.config.maxSamplesPerPerson = v('frMaxSamples') || 50;
+      engine.config.descriptorSize = v('frDescSize') || 256;
+      engine.config.autoTrainEnabled = c('frAutoTrain');
+      engine.config.autoScanOnDetect = c('frAutoScan');
+      engine.config.detectionMethod = v('frDetMethod') || 'auto';
+      engine.config.skinYMin = v('frSkinYMin') || 60;
+      engine.config.skinYMax = v('frSkinYMax') || 255;
+      engine.config.skinCbMin = v('frSkinCbMin') || 77;
+      engine.config.skinCbMax = v('frSkinCbMax') || 127;
+      engine.config.skinCrMin = v('frSkinCrMin') || 133;
+      engine.config.skinCrMax = v('frSkinCrMax') || 173;
+      engine.config.minRegionRatio = v('frMinRegion') || 0.008;
+    }
+
+    function renderPersonList() {
+      const list = document.getElementById('frPersonList');
+      const entries = Object.entries(engine.persons);
+      if (!entries.length) {
+        list.innerHTML = '<div style="text-align:center;padding:20px;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);">No persons in database.<br>Click "+ Add Person" then scan their face.</div>';
+        return;
+      }
+      list.innerHTML = entries.map(([id, p]) => {
+        const ago = p.lastSeen ? Math.round((Date.now() - p.lastSeen) / 1000) + 's ago' : 'never';
+        return `<div class="fr-person-card" id="frP_${id}">
+          <div class="fr-person-thumb">${p.thumbnail ? `<img src="${p.thumbnail}">` : ''}</div>
+          <div class="fr-person-info">
+            <div class="fr-person-name">${p.name}</div>
+            <div class="fr-person-meta">${p.scanCount} scans · last: ${ago}</div>
+            <div class="fr-person-meta">${p.samples.length} samples stored</div>
+          </div>
+          <button class="fr-person-del" data-pid="${id}">×</button>
+        </div>`;
+      }).join('');
+
+      list.querySelectorAll('.fr-person-del').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          engine.removePerson(btn.dataset.pid);
+          renderPersonList();
+        });
+      });
+    }
+
+    function logMsg(type, msg) {
+      const log = document.getElementById('frLog');
+      if (!log) return;
+      const cls = { detect: 'ev-detect', match: 'ev-match', train: 'ev-train', warn: 'ev-warn', sys: 'ev-sys' }[type] || 'ev-sys';
+      const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+      log.innerHTML += `\n<span class="${cls}">[${time}]</span> ${msg}`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    const cleanup = () => { if (engine && engine.running) engine.stopCamera(); };
+    document.getElementById('toolModalClose').addEventListener('click', cleanup, { once: false });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cleanup(); }, { once: false });
   }
 
   /* ═════════════════════════════════════════════════
