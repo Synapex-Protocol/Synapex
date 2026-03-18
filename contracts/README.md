@@ -60,23 +60,45 @@ Flow: Platform routes 5% of each fee to `FeeBurner`. Anyone may call `burnReceiv
 - 60% quorum, simple majority; treasury >100K requires 75% supermajority
 - Timelock for contract changes
 
+## CertiK Audit Readiness
+
+- **OpenZeppelin**: ERC20, ERC20Burnable, ERC20Pausable, Ownable2Step, SafeERC20, ReentrancyGuard
+- **Access control**: 2-step ownership (Ownable2Step)
+- **Reentrancy**: Guards on FeeBurner.burnReceived, SYNXVesting.release
+- **Pausable**: Emergency pause on token (owner only)
+- **Safe transfers**: SafeERC20 in vesting
+- See `AUDIT_CHECKLIST.md` for full checklist
+
 ## Deployment (Foundry)
 
 ```bash
 # Install Foundry: https://getfoundry.sh
+curl -L https://foundry.paradigm.xyz | bash && foundryup
+
+# Install dependencies
 forge install foundry-rs/forge-std --no-commit
+forge install OpenZeppelin/openzeppelin-contracts --no-commit
 
 # Build
 forge build
 
-# Test (add tests in test/)
+# Test
 forge test
+
+# Static analysis (optional)
+slither . --json slither-report.json
 
 # Deploy to testnet
 export PRIVATE_KEY=0x...
-export ECOSYSTEM_BENEFICIARY=0x...
-forge script script/Deploy.s.sol --rpc-url $RPC_URL --broadcast --verify
+forge script script/Deploy.s.sol:DeployScript --rpc-url $RPC_URL --broadcast
 ```
+
+## ChainIDE Deployment
+
+1. Create project in ChainIDE, add `SYNXToken.sol` (with OZ imports — use CDN or inline OZ).
+2. Compile with Solidity 0.8.20.
+3. Deploy in order: SYNXToken → FeeBurner → GovernanceGuard → Vesting contracts.
+4. If ChainIDE lacks OZ: copy required OZ files into project or use a minimal token without OZ (not recommended for CertiK).
 
 ## Roadmap Alignment
 

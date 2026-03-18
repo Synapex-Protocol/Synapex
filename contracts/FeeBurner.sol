@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 /**
  * @title FeeBurner
  * @author SYNAPEX Protocol
@@ -11,39 +13,36 @@ pragma solidity ^0.8.20;
  * contract level. No governance vote can override this."
  *
  * Flow: Platform routes 5% of each fee to this contract. Anyone may call
- * burnReceived() to burn the accumulated SYNX, removing it from supply forever.
+ * burnReceived() to burn the accumulated SYNX.
  */
 interface ISYNX {
     function burn(uint256 amount) external;
     function balanceOf(address account) external view returns (uint256);
 }
 
-contract FeeBurner {
+contract FeeBurner is ReentrancyGuard {
     ISYNX public immutable synx;
 
     event Burned(uint256 amount);
 
-    error ZeroAddress();
-    error NothingToBurn();
+    error FeeBurnerZeroAddress();
+    error FeeBurnerNothingToBurn();
 
     constructor(address synx_) {
-        if (synx_ == address(0)) revert ZeroAddress();
+        if (synx_ == address(0)) revert FeeBurnerZeroAddress();
         synx = ISYNX(synx_);
     }
 
     /**
-     * @notice Burn all SYNX held by this contract (5% of fees routed here by platform)
+     * @notice Burn all SYNX held by this contract (5% of fees routed here)
      */
-    function burnReceived() external {
+    function burnReceived() external nonReentrant {
         uint256 amount = synx.balanceOf(address(this));
-        if (amount == 0) revert NothingToBurn();
+        if (amount == 0) revert FeeBurnerNothingToBurn();
         synx.burn(amount);
         emit Burned(amount);
     }
 
-    /**
-     * @notice View balance awaiting burn
-     */
     function pendingBurn() external view returns (uint256) {
         return synx.balanceOf(address(this));
     }
