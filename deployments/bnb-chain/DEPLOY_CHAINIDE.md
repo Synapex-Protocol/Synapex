@@ -1,135 +1,205 @@
-# BNB Chain Deployment via ChainIDE
+# Deploy SYNAPEX $SYNX na BNB Chain — ChainIDE
 
-> **Important: BNB Chain uses BEP20, not BRC20.**
-> - **BEP20** = BNB Chain (BSC) token standard; fully **ERC20 compatible**. Our contracts work as BEP20 when deployed on BNB Chain.
-> - **BRC20** = Bitcoin token standard; a different protocol. We do not use BRC20.
+## BEP20 vs BRC20 — ważne
+
+| Standard | Sieć | Opis |
+|----------|------|------|
+| **BEP20** | BNB Chain (BSC) | Standard tokenów na BNB Chain. **Kompatybilny z ERC20** — te same interfejsy. Nasze kontrakty po deployu na BNB Chain są tokenami BEP20. |
+| **BRC20** | Bitcoin | Standard tokenów (Ordinals). Zupełnie inny protokół — nie używamy. |
+| **ERC20** | Ethereum | Ten sam interfejs co BEP20. Kontrakty EVM działają na obu sieciach. |
+
+**Nasze kontrakty są przygotowane pod BNB Chain i działają jako BEP20.**
 
 ---
 
-## Step-by-Step Instructions
+## Metoda A: EVM Sandbox + Hardhat (zalecana)
 
-### 1. Create Project in ChainIDE
+ChainIDE ma **BNB Chain EVM Sandbox** z Hardhat, Node.js, npm. Użyj tego do pełnego deployu jedną komendą.
 
-1. Log in to [ChainIDE](https://chainide.com)
-2. Create a new project (Solidity / Hardhat)
-3. Or choose "Import from Git" if the repo is available
+### Krok 1: Wejście na ChainIDE
 
-### 2. Add Project Files
+1. Otwórz [chainide.com](https://chainide.com)
+2. Zaloguj się (załóż konto)
+3. Utwórz nowy projekt lub wybierz **BNB Chain** / **BSC IDE**
 
-The deployment package is self-contained. Copy the entire `deployments/bnb-chain/` folder into ChainIDE. Structure:
+### Krok 2: Otwarcie EVM Sandbox (terminal)
 
-```
-deployments/bnb-chain/
-├── contracts/           <- SYNXToken, FeeBurner, GovernanceGuard, SYNXVesting
-├── scripts/
-│   └── deploy.js
-├── hardhat.config.js
-├── package.json
-└── DEPLOY_CHAINIDE.md
-```
+1. W menu projektu znajdź opcję **EVM Sandbox**, **Terminal** lub **Console**
+2. Otwórz terminal (zwykle w dolnej części ekranu)
+3. Upewnij się, że jesteś w katalogu projektu
 
-Or clone/import the full repo and run all commands from `deployments/bnb-chain/`.
+### Krok 3: Wgranie plików
 
-### 3. Install Dependencies
+**Opcja A — Import z Git**
 
-In the ChainIDE terminal, run:
+- Jeśli ChainIDE ma „Import from Git”: wklej URL repozytorium
+- Po imporcie przejdź do `deployments/bnb-chain/`
+
+**Opcja B — Ręczne utworzenie plików**
+
+1. W panelu Explorer utwórz strukturę:
+   ```
+   deployments/bnb-chain/
+   ├── contracts/
+   ├── scripts/
+   ├── hardhat.config.js
+   └── package.json
+   ```
+2. Skopiuj zawartość z repozytorium:
+   - `contracts/SYNXToken.sol`, `FeeBurner.sol`, `GovernanceGuard.sol`, `SYNXVesting.sol`
+   - `scripts/deploy.js`
+   - `hardhat.config.js`
+   - `package.json`
+
+### Krok 4: Instalacja zależności
+
+W terminalu:
 
 ```bash
+cd deployments/bnb-chain
 npm install
 ```
 
-This installs Hardhat and OpenZeppelin contracts per `package.json`.
-
-### 4. Compile Contracts
+### Krok 5: Kompilacja
 
 ```bash
 npx hardhat compile
 ```
 
-Confirm there are no compilation errors. Output will show compiled artifacts.
+Powinna pojawić się informacja o sukcesie kompilacji. Ewentualne błędy sprawdź w logach.
 
-### 5. Connect MetaMask to BNB Testnet
+### Krok 6: MetaMask + BNB Testnet
 
-1. Open MetaMask
-2. Click the network dropdown → "Add network" / "Add a network manually"
-3. Add BNB Smart Chain Testnet:
-   - **Network name:** BNB Smart Chain Testnet
-   - **RPC URL:** `https://bsc-testnet.bnbchain.org`
-   - **Chain ID:** 97
-   - **Currency symbol:** tBNB
-   - **Block explorer:** `https://testnet.bscscan.com`
-4. Get testnet BNB (tBNB) from a [faucet](https://www.bnbchain.org/en/testnet-faucet)
-5. In ChainIDE, connect your wallet and ensure MetaMask is on BNB Testnet
+1. Otwórz MetaMask
+2. Sieć → „Dodaj sieć” → „Dodaj sieć ręcznie”
+3. Wpisz:
+   - **Nazwa sieci:** BNB Smart Chain Testnet
+   - **URL RPC:** `https://bsc-testnet.bnbchain.org`
+   - **Identyfikator łańcucha:** 97
+   - **Symbol:** tBNB
+   - **Explorer:** `https://testnet.bscscan.com`
+4. Zapisz sieć i przełącz się na BNB Testnet
+5. Zdobądź tBNB z [faucet BNB Chain](https://www.bnbchain.org/en/testnet-faucet)
 
-### 6. Set Private Key for Deployment
+### Krok 7: Ustawienie klucza prywatnego
 
-Export your deployer private key to an environment variable (use a **testnet-only** wallet):
+W terminalu ChainIDE (tylko na testnecie, używaj testowego portfela):
 
 ```bash
-export PRIVATE_KEY="your_metamask_private_key_here"
+export PRIVATE_KEY="0xTWOJ_KLUCZ_PRYWATNY_Z_METAMASK"
 ```
 
-Or create a `.env` file (if ChainIDE supports it) and ensure `hardhat.config.js` reads `process.env.PRIVATE_KEY`.
+Ważne: użyj portfela testowego, nie głównego.
 
-### 7. Deploy Contracts in Order
-
-Deploy to BNB Testnet:
+### Krok 8: Deploy na testnet
 
 ```bash
 npx hardhat run scripts/deploy.js --network bnb-testnet
 ```
 
-The script deploys in this order:
+Skrypt zdeployuje w kolejności:
+1. SYNXToken  
+2. FeeBurner  
+3. GovernanceGuard  
+4. SYNXVesting (przykładowy, 10M tokenów, 6 miesięcy)
 
-1. **SYNXToken** → copy the deployed address
-2. **FeeBurner** (uses SYNXToken address)
-3. **GovernanceGuard** (uses SYNXToken address, owner = deployer)
-4. **SYNXVesting** (example: 10M tokens, 6-month linear vesting)
+### Krok 9: Zapis adresów
 
-### 8. Paste Deployed Addresses for Next Steps
-
-After deployment, the script prints a summary. Save these addresses for later use:
-
-| Contract        | Address (example)      | Use in next step |
-|-----------------|------------------------|------------------|
-| SYNXToken       | `0x...`                | FeeBurner, GovernanceGuard, SYNXVesting |
-| FeeBurner       | `0x...`                | Platform fee routing |
-| GovernanceGuard | `0x...`                | Wallet monitoring |
-| SYNXVesting     | `0x...`                | Vesting management |
-
-Example output:
+Po deployu w konsoli zobaczysz coś w stylu:
 
 ```
 --- Deployment Summary ---
-SYNXToken:       0x1234...
-FeeBurner:       0x5678...
-GovernanceGuard: 0x9abc...
+SYNXToken:        0x1234...
+FeeBurner:        0x5678...
+GovernanceGuard:  0x9abc...
 SYNXVesting:     0xdef0...
 -------------------------
 ```
 
-Use these addresses when configuring the platform (e.g. fee burner address, governance guard, vesting contracts).
+Zapisz te adresy do konfiguracji platformy.
 
-### 9. Verify on BSCScan (Optional)
+### Krok 10: Weryfikacja na BSCScan (opcjonalnie)
 
-1. Go to [BSCScan Testnet](https://testnet.bscscan.com)
-2. Verify each contract: Contract → Verify & Publish
-3. Use "Solidity (Single file)" or "Standard JSON" and paste source + compiler settings
+1. Wejdź na [testnet.bscscan.com](https://testnet.bscscan.com)
+2. Wyszukaj adres kontraktu
+3. Zakładka „Contract” → „Verify & Publish”
 
-### 10. Mainnet Deployment
+---
 
-For mainnet (Chain ID 56), ensure you have real BNB for gas. Run:
+## Metoda B: Prosty interfejs ChainIDE (Compile + Deploy)
+
+Jeśli korzystasz z trybu Remix-like (Compile, Deploy & Interaction):
+
+### Krok 1: Nowy projekt BSC
+
+1. Otwórz ChainIDE → Nowy projekt → BNB Chain / BSC
+
+### Krok 2: Wgranie kontraktów
+
+1. W panelu plików utwórz pliki `.sol`
+2. Wklej kod z `contracts/` (SYNXToken, FeeBurner, GovernanceGuard, SYNXVesting)
+3. Jeśli ChainIDE ma plugin NPM/Import:
+   - Zainstaluj `@openzeppelin/contracts`
+   - Importy `@openzeppelin/contracts/...` będą działać
+4. Jeśli nie ma NPM, użyj Metody A (EVM Sandbox). Alternatywnie w projekcie Hardhat uruchom `npx hardhat flatten contracts/SYNXToken.sol > SYNXToken_flat.sol` i wklej wynik do nowego pliku w ChainIDE.
+
+### Krok 3: Compiler
+
+1. Kliknij **Compiler** (ikona kompilatora)
+2. Wybierz Solidity **0.8.20**
+3. Włącz optimizer, runs: 200
+4. Kliknij **Compile**
+
+### Krok 4: Deploy po jednym kontrakcie
+
+1. Kliknij **Deploy & Interaction**
+2. Połącz portfel (MetaMask, sieć BNB Testnet)
+3. Deployuj po kolei:
+
+| # | Kontrakt      | Parametry konstruktora |
+|---|---------------|-------------------------|
+| 1 | SYNXToken    | (brak) |
+| 2 | FeeBurner    | `synxAddress` = adres SYNXToken z kroku 1 |
+| 3 | GovernanceGuard | `synxAddress` = adres SYNXToken, `owner` = Twój adres |
+| 4 | SYNXVesting  | `token`, `beneficiary`, `totalAllocation`, `tgeBasisPoints`, `cliffMonths`, `vestingMonths` |
+
+4. Dla SYNXVesting po deployu wyślij tokeny na adres kontraktu vestingu (`transfer` z SYNXToken)
+
+### Krok 5: Połączenie portfela
+
+1. W prawym górnym rogu kliknij **Connect Wallet**
+2. Wybierz MetaMask
+3. Sieć: BNB Smart Chain Testnet (Chain ID 97)
+4. Upewnij się, że masz tBNB na gaz
+
+---
+
+## Parametry BNB Chain
+
+| Sieć      | Chain ID | RPC URL |
+|-----------|----------|---------|
+| Testnet   | 97       | `https://bsc-testnet.bnbchain.org` |
+| Mainnet   | 56       | `https://bsc-dataseed.bnbchain.org` |
+
+---
+
+## Deploy na mainnet
+
+Po testach na testnecie:
 
 ```bash
 npx hardhat run scripts/deploy.js --network bnb-mainnet
 ```
 
-Use a secure, dedicated deployer wallet and never share the private key.
+Używaj dedykowanego, bezpiecznego portfela. Nie udostępniaj klucza prywatnego.
 
 ---
 
-## Troubleshooting
+## Rozwiązywanie problemów
 
-- **Insufficient funds:** Get tBNB from the testnet faucet.
-- **Compilation fails:** Ensure OpenZeppelin is installed (`npm install`) and Solidity 0.8.20 is used.
-- **"Nonce too high":** Reset the account in MetaMask or wait for pending transactions.
+| Problem | Rozwiązanie |
+|--------|-------------|
+| Brak środków | Faucet BNB Chain → tBNB |
+| Błąd kompilacji | `npm install`, sprawdź Solidity 0.8.20 |
+| „Nonce too high” | Zresetuj konto w MetaMask lub poczekaj na transakcje |
+| Brak OpenZeppelin | Użyj EVM Sandbox (Metoda A) z `npm install` |
