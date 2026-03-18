@@ -6,6 +6,8 @@ import "../contracts/SYNXVesting.sol";
 import "../contracts/FeeBurner.sol";
 import "../contracts/GovernanceGuard.sol";
 
+// Reminder: forge install OpenZeppelin/openzeppelin-contracts forge-std
+
 /**
  * @title DeployScript
  * @notice Deployment for SYNAPEX Protocol. Use with Foundry:

@@ -1,0 +1,8 @@
+{
+  "filter_paths": "lib|test",
+  "exclude_inheritance": [],
+  "exclude_name": [],
+  "exclude_information": [],
+  "exclude_optimization": [],
+  "exclude_convention": []
+}

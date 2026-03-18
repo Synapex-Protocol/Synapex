@@ -1,42 +1,41 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 /**
  * @title SYNXVesting
  * @author SYNAPEX Protocol
- * @notice Linear vesting with optional cliff and TGE unlock.
+ * @notice Linear vesting with optional cliff and TGE unlock. Audit-ready.
  *
- * Vesting formula: vested = tgeAmount + (total - tgeAmount) * min(elapsed, duration) / duration
+ * Vesting: vested = tgeAmount + (total - tgeAmount) * min(elapsed, duration) / duration
  * after cliff has passed.
  *
  * Whitepaper schedules:
- * - IDO:        30% TGE, 70% over 6mo
- * - Ecosystem:  3yr linear, monthly claims
- * - Team:       1yr cliff, 3yr linear
- * - Foundation: 2yr cliff, 3yr linear
- * - Strategic/Private: 6mo cliff, 18mo linear
- * - Airdrop:    TGE + 6mo linear
+ * - IDO: 30% TGE, 70% over 6mo | Ecosystem: 3yr linear
+ * - Team: 1yr cliff, 3yr linear | Foundation: 2yr cliff, 3yr linear
+ * - Strategic/Private: 6mo cliff, 18mo linear | Airdrop: TGE + 6mo linear
  */
-interface IERC20 {
-    function transfer(address to, uint256 amount) external returns (bool);
-}
+contract SYNXVesting is ReentrancyGuard {
+    using SafeERC20 for IERC20;
 
-contract SYNXVesting {
-    IERC20 public immutable token;
-    address public immutable beneficiary;
-    uint256 public immutable totalAllocation;
-    uint256 public immutable tgeAmount;
-    uint256 public immutable startTime;
-    uint256 public immutable cliffEnd;
-    uint256 public immutable vestingEnd;
+    IERC20 private immutable _token;
+    address private immutable _beneficiary;
+    uint256 private immutable _totalAllocation;
+    uint256 private immutable _tgeAmount;
+    uint256 private immutable _startTime;
+    uint256 private immutable _cliffEnd;
+    uint256 private immutable _vestingEnd;
 
-    uint256 public released;
+    uint256 private _released;
 
     event TokensReleased(address indexed beneficiary, uint256 amount);
 
-    error ZeroAddress();
-    error NoTokensToRelease();
-    error InvalidParams();
+    error SYNXVestingZeroAddress();
+    error SYNXVestingInvalidParams();
+    error SYNXVestingNoTokensToRelease();
 
     /**
      * @param token_           SYNX token address
@@ -54,50 +53,70 @@ contract SYNXVesting {
         uint256 cliffMonths_,
         uint256 vestingMonths_
     ) {
-        if (token_ == address(0) || beneficiary_ == address(0)) revert ZeroAddress();
-        if (totalAllocation_ == 0 || vestingMonths_ == 0) revert InvalidParams();
-        if (tgeBasisPoints_ > 10000) revert InvalidParams();
+        if (token_ == address(0) || beneficiary_ == address(0)) revert SYNXVestingZeroAddress();
+        if (totalAllocation_ == 0 || vestingMonths_ == 0) revert SYNXVestingInvalidParams();
+        if (tgeBasisPoints_ > 10000) revert SYNXVestingInvalidParams();
 
-        token = IERC20(token_);
-        beneficiary = beneficiary_;
-        totalAllocation = totalAllocation_;
-        tgeAmount = (totalAllocation_ * tgeBasisPoints_) / 10000;
-        startTime = block.timestamp;
-        cliffEnd = startTime + (cliffMonths_ * 30 days);
-        vestingEnd = cliffEnd + (vestingMonths_ * 30 days);
+        _token = IERC20(token_);
+        _beneficiary = beneficiary_;
+        _totalAllocation = totalAllocation_;
+        uint256 tgeAmt = (totalAllocation_ * tgeBasisPoints_) / 10000;
+        _tgeAmount = tgeAmt;
+        _startTime = block.timestamp;
+        _cliffEnd = _startTime + (cliffMonths_ * 30 days);
+        _vestingEnd = _cliffEnd + (vestingMonths_ * 30 days);
 
-        if (tgeAmount > 0) {
-            released = tgeAmount;
-            require(token.transfer(beneficiary_, tgeAmount), "TGE transfer failed");
-            emit TokensReleased(beneficiary_, tgeAmount);
+        if (tgeAmt > 0) {
+            _released = tgeAmt;
+            _token.safeTransfer(beneficiary_, tgeAmt);
+            emit TokensReleased(beneficiary_, tgeAmt);
         }
     }
 
-    function vestedAmount() public view returns (uint256) {
-        if (block.timestamp < cliffEnd) return released;
-
-        uint256 linearTotal = totalAllocation - tgeAmount;
-        if (linearTotal == 0) return totalAllocation;
-
-        if (block.timestamp >= vestingEnd) return totalAllocation;
-
-        uint256 elapsed = block.timestamp - cliffEnd;
-        uint256 duration = vestingEnd - cliffEnd;
-        uint256 linearVested = (linearTotal * elapsed) / duration;
-        return tgeAmount + linearVested;
+    function token() public view returns (IERC20) {
+        return _token;
     }
 
-    function release() external {
-        uint256 vested = vestedAmount();
-        uint256 toRelease = vested - released;
-        if (toRelease == 0) revert NoTokensToRelease();
+    function beneficiary() public view returns (address) {
+        return _beneficiary;
+    }
 
-        released += toRelease;
-        require(token.transfer(beneficiary, toRelease), "Transfer failed");
-        emit TokensReleased(beneficiary, toRelease);
+    function totalAllocation() public view returns (uint256) {
+        return _totalAllocation;
+    }
+
+    function released() public view returns (uint256) {
+        return _released;
+    }
+
+    function vestedAmount() public view returns (uint256) {
+        if (block.timestamp < _cliffEnd) return _released;
+
+        uint256 linearTotal = _totalAllocation - _tgeAmount;
+        if (linearTotal == 0) return _totalAllocation;
+
+        if (block.timestamp >= _vestingEnd) return _totalAllocation;
+
+        uint256 elapsed = block.timestamp - _cliffEnd;
+        uint256 duration = _vestingEnd - _cliffEnd;
+        uint256 linearVested = (linearTotal * elapsed) / duration;
+        return _tgeAmount + linearVested;
+    }
+
+    /**
+     * @notice Release vested tokens to beneficiary. Callable by anyone (assists UX).
+     */
+    function release() external nonReentrant {
+        uint256 vested = vestedAmount();
+        uint256 toRelease = vested - _released;
+        if (toRelease == 0) revert SYNXVestingNoTokensToRelease();
+
+        _released += toRelease;
+        _token.safeTransfer(_beneficiary, toRelease);
+        emit TokensReleased(_beneficiary, toRelease);
     }
 
     function releasable() external view returns (uint256) {
-        return vestedAmount() - released;
+        return vestedAmount() - _released;
     }
 }
